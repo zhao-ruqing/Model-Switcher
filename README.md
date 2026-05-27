@@ -12,13 +12,15 @@
 ## 快速开始
 
 1. **安装依赖**：
+
    ```bash
    npm install
    ```
-2. **设置开机自启**（推荐）：
-   双击运行 `setup-autostart.vbs`，这会在你的 Windows 启动文件夹中创建一个静默运行的快捷方式。
-3. **启动服务**：
+
+2. **启动服务**：
    双击 `start-silent.vbs` 即可在后台启动管理界面。
+3. **设置开机自启**（推荐）：
+   双击运行 `setup-autostart.vbs`，这会在你的 Windows 启动文件夹中创建一个静默运行的快捷方式。
 4. **管理配置**：
    在浏览器访问 [http://localhost:51234](http://localhost:51234)。
 
