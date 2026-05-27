@@ -2,7 +2,7 @@ Set WshShell = CreateObject("WScript.Shell")
 WshShell.CurrentDirectory = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
 WshShell.Run "cmd /c node launcher.js", 0, False
 
-' 轮询等待 launcher 就绪，最多等 10 秒
+' Wait for launcher to be ready
 Dim i, http
 For i = 1 To 20
   WScript.Sleep 500

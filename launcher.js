@@ -1,5 +1,5 @@
-const http = require('http');
-const { spawn } = require('child_process');
+const http = require("http");
+const { spawn } = require("child_process");
 
 const PORT = 51234;
 const BACKEND_PORT = 51235;
@@ -15,7 +15,7 @@ function resetIdle() {
     if (serverProc) {
       serverProc.kill();
       serverProc = null;
-      console.log('[launcher] 后端空闲超时，已关闭');
+      console.log("[launcher] 后端空闲超时，已关闭");
     }
   }, IDLE_TIMEOUT);
 }
@@ -26,8 +26,11 @@ function checkBackend() {
       res.resume();
       resolve(true);
     });
-    req.on('error', () => resolve(false));
-    req.setTimeout(1000, () => { req.destroy(); resolve(false); });
+    req.on("error", () => resolve(false));
+    req.setTimeout(1000, () => {
+      req.destroy();
+      resolve(false);
+    });
   });
 }
 
@@ -35,34 +38,38 @@ function startBackend() {
   if (serverProc) return;
   if (starting) return;
   starting = true;
-  serverProc = spawn('node', ['server.js'], {
+  serverProc = spawn("node", ["server.js"], {
     cwd: __dirname,
-    stdio: 'ignore',
+    stdio: "ignore",
+    windowsHide: true,
   });
-  serverProc.on('exit', () => { serverProc = null; starting = false; });
+  serverProc.on("exit", () => {
+    serverProc = null;
+    starting = false;
+  });
 }
 
 function proxyRequest(clientReq, clientRes) {
   const options = {
-    hostname: '127.0.0.1',
+    hostname: "127.0.0.1",
     port: BACKEND_PORT,
     path: clientReq.url,
     method: clientReq.method,
     headers: { ...clientReq.headers },
   };
   // 去掉 hop-by-hop headers
-  delete options.headers['connection'];
-  delete options.headers['keep-alive'];
+  delete options.headers["connection"];
+  delete options.headers["keep-alive"];
 
   const proxy = http.request(options, (backendRes) => {
     clientRes.writeHead(backendRes.statusCode, backendRes.headers);
     backendRes.pipe(clientRes);
   });
-  proxy.on('error', () => {
+  proxy.on("error", () => {
     if (!clientRes.headersSent) {
-      clientRes.writeHead(502, { 'Content-Type': 'text/plain; charset=utf-8' });
+      clientRes.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
     }
-    clientRes.end('后端服务不可用');
+    clientRes.end("后端服务不可用");
   });
   clientReq.pipe(proxy);
 }
@@ -103,7 +110,7 @@ function serveLoading(clientRes) {
 </script>
 </body>
 </html>`;
-  clientRes.writeHead(503, { 'Content-Type': 'text/html; charset=utf-8' });
+  clientRes.writeHead(503, { "Content-Type": "text/html; charset=utf-8" });
   clientRes.end(html);
 }
 

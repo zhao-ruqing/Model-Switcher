@@ -8,7 +8,8 @@ const PORT = 51235;
 
 const CLAUDE_DIR = path.join(process.env.USERPROFILE, ".claude");
 const CLAUDE_SETTINGS = path.join(CLAUDE_DIR, "settings.json");
-const OPENCODE_SETTINGS = path.join(process.env.USERPROFILE, ".opencode.json");
+const OPENCODE_DIR = path.join(process.env.USERPROFILE, ".config", "opencode");
+const OPENCODE_SETTINGS = path.join(OPENCODE_DIR, "opencode.jsonc");
 const CONFIG_FILE = path.join(__dirname, "config.json");
 
 app.use(cors());
@@ -35,16 +36,28 @@ if (!fs.existsSync(CLAUDE_DIR)) {
 }
 
 if (!fs.existsSync(CONFIG_FILE)) {
-  writeJson(CONFIG_FILE, { configs: [], activeId: null });
+  writeJson(CONFIG_FILE, {
+    configs: [],
+    activeClaudeId: null,
+    activeOpencodeId: null,
+  });
 }
 
 app.get("/api/configs", (req, res) => {
-  const data = readJson(CONFIG_FILE, { configs: [], activeId: null });
+  const data = readJson(CONFIG_FILE, {
+    configs: [],
+    activeClaudeId: null,
+    activeOpencodeId: null,
+  });
   res.json(data);
 });
 
 app.post("/api/configs", (req, res) => {
-  const data = readJson(CONFIG_FILE, { configs: [], activeId: null });
+  const data = readJson(CONFIG_FILE, {
+    configs: [],
+    activeClaudeId: null,
+    activeOpencodeId: null,
+  });
   const config = {
     id: Date.now().toString(),
     name: req.body.name || "未命名",
@@ -64,7 +77,11 @@ app.post("/api/configs", (req, res) => {
 });
 
 app.put("/api/configs/:id", (req, res) => {
-  const data = readJson(CONFIG_FILE, { configs: [], activeId: null });
+  const data = readJson(CONFIG_FILE, {
+    configs: [],
+    activeClaudeId: null,
+    activeOpencodeId: null,
+  });
   const index = data.configs.findIndex((c) => c.id === req.params.id);
   if (index === -1) return res.status(404).json({ error: "不存在" });
 
@@ -79,9 +96,14 @@ app.put("/api/configs/:id", (req, res) => {
 });
 
 app.delete("/api/configs/:id", (req, res) => {
-  const data = readJson(CONFIG_FILE, { configs: [], activeId: null });
+  const data = readJson(CONFIG_FILE, {
+    configs: [],
+    activeClaudeId: null,
+    activeOpencodeId: null,
+  });
   data.configs = data.configs.filter((c) => c.id !== req.params.id);
-  if (data.activeId === req.params.id) data.activeId = null;
+  if (data.activeClaudeId === req.params.id) data.activeClaudeId = null;
+  if (data.activeOpencodeId === req.params.id) data.activeOpencodeId = null;
   writeJson(CONFIG_FILE, data);
   res.json({ success: true });
 });
@@ -102,34 +124,75 @@ function switchClaude(config) {
 }
 
 function switchOpencode(config) {
-  const s = readJson(OPENCODE_SETTINGS, {
-    providers: {},
-    agents: {
-      coder: { model: "", maxTokens: 5000 },
-      task: { model: "", maxTokens: 5000 },
-      title: { model: "", maxTokens: 80 },
-    },
-  });
-  const p = config.providerType || "anthropic";
-  if (!s.providers[p]) s.providers[p] = {};
-  if (config.token) s.providers[p].apiKey = config.token;
-  if (config.baseUrl) s.providers[p].baseUrl = config.baseUrl;
-  if (config.model) {
-    s.agents.coder.model = config.model;
-    s.agents.task.model = config.model;
+  if (!fs.existsSync(OPENCODE_DIR)) {
+    fs.mkdirSync(OPENCODE_DIR, { recursive: true });
   }
+
+  const s = readJson(OPENCODE_SETTINGS, {
+    $schema: "https://opencode.ai/config.json",
+    provider: {},
+    model: "",
+  });
+
+  const providerKey =
+    config.name.toLowerCase().replace(/[^a-z0-9]/g, "") || "default";
+  const modelId = config.model || "default-model";
+
+  let npmPkg = "@ai-sdk/anthropic";
+  if (config.providerType === "openai") {
+    npmPkg = "@ai-sdk/openai-compatible";
+  }
+
+  // 确保 provider 对象存在
+  if (!s.provider) s.provider = {};
+
+  // 更新或创建指定的 provider
+  s.provider[providerKey] = {
+    npm: npmPkg,
+    name: config.name,
+    options: {
+      baseURL: config.baseUrl || "",
+      apiKey: config.token || "",
+    },
+    models: {},
+  };
+
+  // 为该模型添加基础配置
+  s.provider[providerKey].models[modelId] = {
+    name: modelId,
+    limit: {
+      context: 1048576,
+      output: 131072,
+    },
+    modalities: {
+      input: ["text"],
+      output: ["text"],
+    },
+  };
+
+  // 设置当前激活的模型路径
+  s.model = `${providerKey}/${modelId}`;
+
   writeJson(OPENCODE_SETTINGS, s);
 }
 
 app.post("/api/switch/:id", (req, res) => {
-  const data = readJson(CONFIG_FILE, { configs: [], activeId: null });
+  const data = readJson(CONFIG_FILE, {
+    configs: [],
+    activeClaudeId: null,
+    activeOpencodeId: null,
+  });
   const config = data.configs.find((c) => c.id === req.params.id);
   if (!config) return res.status(404).json({ error: "不存在" });
 
   try {
-    if (config.type === "opencode") switchOpencode(config);
-    else switchClaude(config);
-    data.activeId = config.id;
+    if (config.type === "opencode") {
+      switchOpencode(config);
+      data.activeOpencodeId = config.id;
+    } else {
+      switchClaude(config);
+      data.activeClaudeId = config.id;
+    }
     writeJson(CONFIG_FILE, data);
     res.json({ success: true, config: config });
   } catch (e) {

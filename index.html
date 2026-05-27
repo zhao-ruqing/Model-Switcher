@@ -1,450 +1,854 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI 配置切换器</title>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; overflow: hidden; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f5; }
-    .layout { display: flex; height: 100%; }
-    
-    .sidebar { width: 180px; background: #fff; border-right: 1px solid #eee; display: flex; flex-direction: column; flex-shrink: 0; }
-    .sidebar-header { padding: 20px 16px; border-bottom: 1px solid #eee; }
-    .sidebar-header h2 { font-size: 15px; color: #333; }
-    .sidebar-header p { font-size: 11px; color: #999; margin-top: 4px; }
-    .nav { flex: 1; padding: 8px 0; }
-    .nav-item { padding: 10px 16px; cursor: pointer; font-size: 13px; color: #666; }
-    .nav-item:hover { background: #f8f8f8; color: #333; }
-    .nav-item.active { background: #f0f0f0; color: #333; font-weight: 500; }
-    
-    .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .content-header { padding: 16px 24px; background: #fff; border-bottom: 1px solid #eee; }
-    .content-header h3 { font-size: 16px; color: #333; }
-    .content-body { flex: 1; padding: 20px; overflow-y: auto; }
-    
-    .card { background: #fff; border-radius: 8px; padding: 14px; margin-bottom: 14px; border: 1px solid #eee; }
-    .card-title { font-size: 11px; font-weight: 600; color: #999; margin-bottom: 10px; text-transform: uppercase; }
-    
-    .config-list { display: flex; flex-direction: column; gap: 6px; }
-    .config-item { display: flex; align-items: center; padding: 10px 12px; border: 1px solid #eee; border-radius: 6px; cursor: pointer; }
-    .config-item:hover { border-color: #ddd; background: #fafafa; }
-    .config-item.active { border-color: #333; background: #f5f5f5; }
-    .config-item .icon { font-size: 18px; margin-right: 10px; }
-    .config-item .info { flex: 1; min-width: 0; }
-    .config-item .name { font-size: 13px; font-weight: 600; color: #333; }
-    .config-item .detail { font-size: 11px; color: #999; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .config-item .actions { display: flex; gap: 6px; flex-shrink: 0; margin-left: 10px; }
-    .config-item .btn-sm { padding: 4px 8px; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; }
-    .config-item .btn-switch { background: #333; color: #fff; }
-    .config-item .btn-switch:hover { background: #555; }
-    .config-item .btn-edit { background: #eee; color: #666; }
-    .config-item .btn-edit:hover { background: #ddd; }
-    .config-item .btn-del { background: #fee; color: #e74c3c; }
-    .config-item .btn-del:hover { background: #e74c3c; color: #fff; }
-    .config-item.active .btn-switch { background: #4caf50; }
-    
-    .form-row { display: flex; gap: 10px; }
-    .form-row .form-group { flex: 1; }
-    .form-group { margin-bottom: 10px; }
-    .form-group label { display: block; margin-bottom: 3px; font-size: 11px; color: #666; }
-    
-    .input-with-btn { display: flex; gap: 4px; }
-    .input-with-btn input { flex: 1; padding: 7px 9px; border: 1px solid #ddd; border-radius: 5px; font-size: 13px; color: #333; background: #fff; }
-    .input-with-btn input:focus { outline: none; border-color: #333; }
-    .input-with-btn .btn-drop { width: 28px; padding: 7px 0; border: 1px solid #ddd; border-left: none; border-radius: 0 5px 5px 0; background: #fafafa; cursor: pointer; font-size: 10px; color: #999; }
-    .input-with-btn .btn-drop:hover { background: #f0f0f0; }
-    
-    .dropdown-menu { position: absolute; left: 0; right: 28px; background: #fff; border: 1px solid #ddd; border-radius: 5px; margin-top: 2px; max-height: 150px; overflow-y: auto; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-    .dropdown-menu.show { display: block; }
-    .dropdown-menu .item { padding: 7px 10px; font-size: 12px; color: #333; cursor: pointer; }
-    .dropdown-menu .item:hover { background: #f5f5f5; }
-    
-    .form-group .hint { font-size: 10px; color: #bbb; margin-top: 2px; }
-    
-    .btn-save { width: 100%; padding: 9px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; background: #333; color: #fff; }
-    .btn-save:hover { background: #555; }
-    
-    .toast { position: fixed; top: 16px; right: 16px; padding: 10px 18px; border-radius: 6px; font-size: 12px; z-index: 1000; transform: translateX(120%); transition: transform 0.3s; }
-    .toast.show { transform: translateX(0); }
-    .toast.success { background: #333; color: #fff; }
-    .toast.error { background: #e74c3c; color: #fff; }
-    
-    .empty { text-align: center; color: #ccc; padding: 16px; font-size: 12px; }
-    
-    .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 999; align-items: center; justify-content: center; }
-    .modal.show { display: flex; }
-    .modal-box { background: #fff; border-radius: 10px; padding: 20px; width: 400px; max-height: 80vh; overflow-y: auto; }
-    .modal-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; }
-    .modal-actions { display: flex; gap: 10px; margin-top: 16px; }
-    .modal-actions button { flex: 1; padding: 9px; border: none; border-radius: 6px; font-size: 13px; cursor: pointer; }
-    .btn-cancel { background: #eee; color: #666; }
-    .btn-confirm { background: #333; color: #fff; }
-  </style>
-</head>
-<body>
-  <div class="layout">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <h2>配置切换器</h2>
-        <p>Claude Code / OpenCode</p>
-      </div>
-      <div class="nav">
-        <div class="nav-item active" onclick="switchTool('claude')" id="nav-claude">Claude Code</div>
-        <div class="nav-item" onclick="switchTool('opencode')" id="nav-opencode">OpenCode</div>
-      </div>
-    </div>
-    <div class="content">
-      <div class="content-header">
-        <h3 id="toolTitle">Claude Code</h3>
-      </div>
-      <div class="content-body">
-        <div id="toast" class="toast"></div>
-        
-        <div class="card">
-          <div class="card-title">配置列表</div>
-          <div class="config-list" id="configList"></div>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 配置切换器</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        height: 100%;
+        overflow: hidden;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #f5f5f5;
+      }
+      .layout {
+        display: flex;
+        height: 100%;
+      }
+
+      .sidebar {
+        width: 180px;
+        background: #fff;
+        border-right: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+      .sidebar-header {
+        padding: 20px 16px;
+        border-bottom: 1px solid #eee;
+      }
+      .sidebar-header h2 {
+        font-size: 15px;
+        color: #333;
+      }
+      .sidebar-header p {
+        font-size: 11px;
+        color: #999;
+        margin-top: 4px;
+      }
+      .nav {
+        flex: 1;
+        padding: 8px 0;
+      }
+      .nav-item {
+        padding: 10px 16px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #666;
+      }
+      .nav-item:hover {
+        background: #f8f8f8;
+        color: #333;
+      }
+      .nav-item.active {
+        background: #f0f0f0;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+      .content-header {
+        padding: 16px 24px;
+        background: #fff;
+        border-bottom: 1px solid #eee;
+      }
+      .content-header h3 {
+        font-size: 16px;
+        color: #333;
+      }
+      .content-body {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+      }
+
+      .card {
+        background: #fff;
+        border-radius: 8px;
+        padding: 14px;
+        margin-bottom: 14px;
+        border: 1px solid #eee;
+      }
+      .card-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #999;
+        margin-bottom: 10px;
+        text-transform: uppercase;
+      }
+
+      .config-list {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .config-item {
+        display: flex;
+        align-items: center;
+        padding: 10px 12px;
+        border: 1px solid #eee;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .config-item:hover {
+        border-color: #ddd;
+        background: #fafafa;
+      }
+      .config-item.active {
+        border-color: #333;
+        background: #f5f5f5;
+      }
+      .config-item .icon {
+        font-size: 18px;
+        margin-right: 10px;
+      }
+      .config-item .info {
+        flex: 1;
+        min-width: 0;
+      }
+      .config-item .name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #333;
+      }
+      .config-item .detail {
+        font-size: 11px;
+        color: #999;
+        margin-top: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .config-item .actions {
+        display: flex;
+        gap: 6px;
+        flex-shrink: 0;
+        margin-left: 10px;
+      }
+      .config-item .btn-sm {
+        padding: 4px 8px;
+        border: none;
+        border-radius: 4px;
+        font-size: 11px;
+        cursor: pointer;
+      }
+      .config-item .btn-switch {
+        background: #333;
+        color: #fff;
+      }
+      .config-item .btn-switch:hover {
+        background: #555;
+      }
+      .config-item .btn-edit {
+        background: #eee;
+        color: #666;
+      }
+      .config-item .btn-edit:hover {
+        background: #ddd;
+      }
+      .config-item .btn-del {
+        background: #fee;
+        color: #e74c3c;
+      }
+      .config-item .btn-del:hover {
+        background: #e74c3c;
+        color: #fff;
+      }
+      .config-item.active .btn-switch {
+        background: #4caf50;
+      }
+
+      .form-row {
+        display: flex;
+        gap: 10px;
+      }
+      .form-row .form-group {
+        flex: 1;
+      }
+      .form-group {
+        margin-bottom: 10px;
+      }
+      .form-group label {
+        display: block;
+        margin-bottom: 3px;
+        font-size: 11px;
+        color: #666;
+      }
+
+      .input-with-btn {
+        display: flex;
+        gap: 4px;
+      }
+      .input-with-btn input {
+        flex: 1;
+        padding: 7px 9px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 13px;
+        color: #333;
+        background: #fff;
+      }
+      .input-with-btn input:focus {
+        outline: none;
+        border-color: #333;
+      }
+      .input-with-btn .btn-drop {
+        width: 28px;
+        padding: 7px 0;
+        border: 1px solid #ddd;
+        border-left: none;
+        border-radius: 0 5px 5px 0;
+        background: #fafafa;
+        cursor: pointer;
+        font-size: 10px;
+        color: #999;
+      }
+      .input-with-btn .btn-drop:hover {
+        background: #f0f0f0;
+      }
+
+      .dropdown-menu {
+        position: absolute;
+        left: 0;
+        right: 28px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        margin-top: 2px;
+        max-height: 150px;
+        overflow-y: auto;
+        z-index: 100;
+        display: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+      .dropdown-menu.show {
+        display: block;
+      }
+      .dropdown-menu .item {
+        padding: 7px 10px;
+        font-size: 12px;
+        color: #333;
+        cursor: pointer;
+      }
+      .dropdown-menu .item:hover {
+        background: #f5f5f5;
+      }
+
+      .form-group .hint {
+        font-size: 10px;
+        color: #bbb;
+        margin-top: 2px;
+      }
+
+      .btn-save {
+        width: 100%;
+        padding: 9px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: #333;
+        color: #fff;
+      }
+      .btn-save:hover {
+        background: #555;
+      }
+
+      .toast {
+        position: fixed;
+        top: 16px;
+        right: 16px;
+        padding: 10px 18px;
+        border-radius: 6px;
+        font-size: 12px;
+        z-index: 1000;
+        transform: translateX(120%);
+        transition: transform 0.3s;
+      }
+      .toast.show {
+        transform: translateX(0);
+      }
+      .toast.success {
+        background: #333;
+        color: #fff;
+      }
+      .toast.error {
+        background: #e74c3c;
+        color: #fff;
+      }
+
+      .empty {
+        text-align: center;
+        color: #ccc;
+        padding: 16px;
+        font-size: 12px;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+      }
+      .modal.show {
+        display: flex;
+      }
+      .modal-box {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        width: 400px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+      .modal-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 16px;
+      }
+      .modal-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 16px;
+      }
+      .modal-actions button {
+        flex: 1;
+        padding: 9px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .btn-cancel {
+        background: #eee;
+        color: #666;
+      }
+      .btn-confirm {
+        background: #333;
+        color: #fff;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div class="sidebar">
+        <div class="sidebar-header">
+          <h2>配置切换器</h2>
+          <p>Claude Code / OpenCode</p>
         </div>
-        
-        <div class="card">
-          <div class="card-title">添加配置</div>
-          <div class="form-group">
-            <label>名称</label>
-            <div class="input-with-btn" style="position:relative;">
-              <input type="text" id="name" placeholder="DeepSeek / MiMo" oninput="autoFill(this.value)">
-              <button class="btn-drop" onclick="toggleDrop('nameDrop')">▼</button>
-              <div class="dropdown-menu" id="nameDrop">
-                <div class="item" onclick="pickValue('name','DeepSeek')">DeepSeek</div>
-                <div class="item" onclick="pickValue('name','MiMo')">MiMo</div>
-              </div>
-            </div>
+        <div class="nav">
+          <div
+            class="nav-item active"
+            onclick="switchTool('claude')"
+            id="nav-claude"
+          >
+            Claude Code
           </div>
-          <div id="providerGroup" style="display:none;">
+          <div
+            class="nav-item"
+            onclick="switchTool('opencode')"
+            id="nav-opencode"
+          >
+            OpenCode
+          </div>
+        </div>
+      </div>
+      <div class="content">
+        <div class="content-header">
+          <h3 id="toolTitle">Claude Code</h3>
+        </div>
+        <div class="content-body">
+          <div id="toast" class="toast"></div>
+
+          <div class="card">
+            <div class="card-title">配置列表</div>
+            <div class="config-list" id="configList"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">添加配置</div>
             <div class="form-group">
-              <label>Provider</label>
-              <div class="input-with-btn" style="position:relative;">
-                <input type="text" id="provider" value="anthropic" readonly>
-                <button class="btn-drop" onclick="toggleDrop('providerDrop')">▼</button>
-                <div class="dropdown-menu" id="providerDrop">
-                  <div class="item" onclick="pickValue('provider','anthropic')">anthropic</div>
-                  <div class="item" onclick="pickValue('provider','openai')">openai</div>
+              <label>名称</label>
+              <div class="input-with-btn" style="position: relative">
+                <input
+                  type="text"
+                  id="name"
+                  placeholder="DeepSeek / MiMo"
+                  oninput="autoFill(this.value)"
+                />
+                <button class="btn-drop" onclick="toggleDrop('nameDrop')">
+                  ▼
+                </button>
+                <div class="dropdown-menu" id="nameDrop">
+                  <div class="item" onclick="pickValue('name', 'DeepSeek')">
+                    DeepSeek
+                  </div>
+                  <div class="item" onclick="pickValue('name', 'MiMo')">
+                    MiMo
+                  </div>
                 </div>
               </div>
-              <div class="hint">DeepSeek/MiMo 选 openai</div>
             </div>
-          </div>
-          <div class="form-group">
-            <label>API Token</label>
-            <div class="input-with-btn">
-              <input type="password" id="token" placeholder="sk-...">
-              <button class="btn-drop" onclick="toggleToken()" id="tokenBtn" style="font-size:12px;">👁</button>
+            <div id="providerGroup" style="display: none">
+              <div class="form-group">
+                <label>Provider</label>
+                <div class="input-with-btn" style="position: relative">
+                  <input type="text" id="provider" value="anthropic" readonly />
+                  <button class="btn-drop" onclick="toggleDrop('providerDrop')">
+                    ▼
+                  </button>
+                  <div class="dropdown-menu" id="providerDrop">
+                    <div
+                      class="item"
+                      onclick="pickValue('provider', 'anthropic')"
+                    >
+                      anthropic
+                    </div>
+                    <div class="item" onclick="pickValue('provider', 'openai')">
+                      openai
+                    </div>
+                  </div>
+                </div>
+                <div class="hint">DeepSeek/MiMo 选 openai</div>
+              </div>
             </div>
-          </div>
-          <div class="form-group">
-            <label>Base URL</label>
-            <div class="input-with-btn" style="position:relative;">
-              <input type="text" id="baseUrl" placeholder="https://...">
-              <button class="btn-drop" onclick="toggleDrop('urlDrop')">▼</button>
-              <div class="dropdown-menu" id="urlDrop"></div>
-            </div>
-          </div>
-          <div class="form-row">
             <div class="form-group">
-              <label>模型</label>
-              <div class="input-with-btn" style="position:relative;">
-                <input type="text" id="model" placeholder="模型名称">
-                <button class="btn-drop" onclick="toggleDrop('modelDrop')">▼</button>
-                <div class="dropdown-menu" id="modelDrop"></div>
+              <label>API Token</label>
+              <div class="input-with-btn">
+                <input type="password" id="token" placeholder="sk-..." />
+                <button
+                  class="btn-drop"
+                  onclick="toggleToken()"
+                  id="tokenBtn"
+                  style="font-size: 12px"
+                >
+                  👁
+                </button>
               </div>
             </div>
-            <div class="form-group" id="haikuGroup">
-              <label>Haiku 模型</label>
-              <div class="input-with-btn" style="position:relative;">
-                <input type="text" id="haikuModel" placeholder="可选">
-                <button class="btn-drop" onclick="toggleDrop('haikuDrop')">▼</button>
-                <div class="dropdown-menu" id="haikuDrop"></div>
+            <div class="form-group">
+              <label>Base URL</label>
+              <div class="input-with-btn" style="position: relative">
+                <input type="text" id="baseUrl" placeholder="https://..." />
+                <button class="btn-drop" onclick="toggleDrop('urlDrop')">
+                  ▼
+                </button>
+                <div class="dropdown-menu" id="urlDrop"></div>
               </div>
             </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>模型</label>
+                <div class="input-with-btn" style="position: relative">
+                  <input type="text" id="model" placeholder="模型名称" />
+                  <button class="btn-drop" onclick="toggleDrop('modelDrop')">
+                    ▼
+                  </button>
+                  <div class="dropdown-menu" id="modelDrop"></div>
+                </div>
+              </div>
+              <div class="form-group" id="haikuGroup">
+                <label>Haiku 模型</label>
+                <div class="input-with-btn" style="position: relative">
+                  <input type="text" id="haikuModel" placeholder="可选" />
+                  <button class="btn-drop" onclick="toggleDrop('haikuDrop')">
+                    ▼
+                  </button>
+                  <div class="dropdown-menu" id="haikuDrop"></div>
+                </div>
+              </div>
+            </div>
+            <button class="btn-save" onclick="addConfig()">保存</button>
           </div>
-          <button class="btn-save" onclick="addConfig()">保存</button>
         </div>
       </div>
     </div>
-  </div>
-  
-  <div class="modal" id="editModal">
-    <div class="modal-box">
-      <div class="modal-title">编辑配置</div>
-      <input type="hidden" id="editId">
-      <div class="form-group">
-        <label>名称</label>
-        <div class="input-with-btn">
-          <input type="text" id="editName">
-        </div>
-      </div>
-      <div class="form-group">
-        <label>API Token</label>
-        <div class="input-with-btn">
-          <input type="password" id="editToken">
-          <button class="btn-drop" onclick="toggleEditToken()" id="editTokenBtn" style="font-size:12px;">👁</button>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Base URL</label>
-        <div class="input-with-btn">
-          <input type="text" id="editBaseUrl">
-        </div>
-      </div>
-      <div class="form-row">
+
+    <div class="modal" id="editModal">
+      <div class="modal-box">
+        <div class="modal-title">编辑配置</div>
+        <input type="hidden" id="editId" />
         <div class="form-group">
-          <label>模型</label>
+          <label>名称</label>
           <div class="input-with-btn">
-            <input type="text" id="editModel">
+            <input type="text" id="editName" />
           </div>
         </div>
-        <div class="form-group" id="editHaikuGroup">
-          <label>Haiku 模型</label>
+        <div class="form-group" id="editProviderGroup">
+          <label>Provider</label>
           <div class="input-with-btn">
-            <input type="text" id="editHaikuModel">
+            <input type="text" id="editProvider" />
           </div>
         </div>
-      </div>
-      <div class="modal-actions">
-        <button class="btn-cancel" onclick="closeModal()">取消</button>
-        <button class="btn-confirm" onclick="saveEdit()">保存</button>
+        <div class="form-group">
+          <label>API Token</label>
+          <div class="input-with-btn">
+            <input type="password" id="editToken" />
+            <button
+              class="btn-drop"
+              onclick="toggleEditToken()"
+              id="editTokenBtn"
+              style="font-size: 12px"
+            >
+              👁
+            </button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Base URL</label>
+          <div class="input-with-btn">
+            <input type="text" id="editBaseUrl" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>模型</label>
+            <div class="input-with-btn">
+              <input type="text" id="editModel" />
+            </div>
+          </div>
+          <div class="form-group" id="editHaikuGroup">
+            <label>Haiku 模型</label>
+            <div class="input-with-btn">
+              <input type="text" id="editHaikuModel" />
+            </div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeModal()">取消</button>
+          <button class="btn-confirm" onclick="saveEdit()">保存</button>
+        </div>
       </div>
     </div>
-  </div>
 
-  <script>
-    let configs = [];
-    let activeId = null;
-    let currentTool = 'claude';
-    let currentProvider = 'anthropic';
+    <script>
+      let configs = [];
+      let activeClaudeId = null;
+      let activeOpencodeId = null;
+      let currentTool = "claude";
+      let currentProvider = "anthropic";
 
-    const URLS = {
-      claude: {
-        deepseek: 'https://api.deepseek.com/anthropic',
-        mimo: 'https://token-plan-sgp.xiaomimimo.com/anthropic'
-      },
-      opencode: {
-        anthropic: { deepseek: 'https://api.deepseek.com/anthropic', mimo: 'https://token-plan-sgp.xiaomimimo.com/anthropic' },
-        openai: { deepseek: 'https://api.deepseek.com/v1', mimo: 'https://token-plan-sgp.xiaomimimo.com/v1' }
+      const URLS = {
+        claude: {
+          deepseek: "https://api.deepseek.com/anthropic",
+          mimo: "https://token-plan-sgp.xiaomimimo.com/anthropic",
+        },
+        opencode: {
+          anthropic: {
+            deepseek: "https://api.deepseek.com/anthropic",
+            mimo: "https://token-plan-sgp.xiaomimimo.com/anthropic",
+          },
+          openai: {
+            deepseek: "https://api.deepseek.com/v1",
+            mimo: "https://token-plan-sgp.xiaomimimo.com/v1",
+          },
+        },
+      };
+
+      const MODELS = {
+        deepseek: { main: "deepseek-v4-pro", haiku: "deepseek-v4-flash" },
+        mimo: { main: "mimo-v2.5-pro", haiku: "mimo-v2.5-pro" },
+      };
+
+      function toggleDrop(id) {
+        const el = document.getElementById(id);
+        document.querySelectorAll(".dropdown-menu.show").forEach((m) => {
+          if (m !== el) m.classList.remove("show");
+        });
+        el.classList.toggle("show");
       }
-    };
 
-    const MODELS = {
-      deepseek: { main: 'deepseek-v4-pro', haiku: 'deepseek-v4-flash' },
-      mimo: { main: 'mimo-v2.5-pro', haiku: 'mimo-v2.5-pro' }
-    };
-
-    function toggleDrop(id) {
-      const el = document.getElementById(id);
-      document.querySelectorAll('.dropdown-menu.show').forEach(m => { if (m !== el) m.classList.remove('show'); });
-      el.classList.toggle('show');
-    }
-
-    function pickValue(inputId, value) {
-      document.getElementById(inputId).value = value;
-      document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
-      if (inputId === 'provider') {
-        currentProvider = value;
-        updateDrops();
+      function pickValue(inputId, value) {
+        document.getElementById(inputId).value = value;
+        document
+          .querySelectorAll(".dropdown-menu.show")
+          .forEach((m) => m.classList.remove("show"));
+        if (inputId === "provider") {
+          currentProvider = value;
+          updateDrops();
+        }
+        if (inputId === "name") autoFill(value);
       }
-      if (inputId === 'name') autoFill(value);
-    }
 
-    function updateDrops() {
-      const urls = currentTool === 'opencode' ? URLS.opencode[currentProvider] : URLS.claude;
-      document.getElementById('urlDrop').innerHTML = `
+      function updateDrops() {
+        const urls =
+          currentTool === "opencode"
+            ? URLS.opencode[currentProvider]
+            : URLS.claude;
+        document.getElementById("urlDrop").innerHTML = `
         <div class="item" onclick="pickValue('baseUrl','${urls.deepseek}')">${urls.deepseek}</div>
         <div class="item" onclick="pickValue('baseUrl','${urls.mimo}')">${urls.mimo}</div>
       `;
-      document.getElementById('modelDrop').innerHTML = `
+        document.getElementById("modelDrop").innerHTML = `
         <div class="item" onclick="pickValue('model','${MODELS.deepseek.main}')">${MODELS.deepseek.main}</div>
         <div class="item" onclick="pickValue('model','${MODELS.mimo.main}')">${MODELS.mimo.main}</div>
       `;
-      document.getElementById('haikuDrop').innerHTML = `
+        document.getElementById("haikuDrop").innerHTML = `
         <div class="item" onclick="pickValue('haikuModel','${MODELS.deepseek.haiku}')">${MODELS.deepseek.haiku}</div>
         <div class="item" onclick="pickValue('haikuModel','${MODELS.mimo.haiku}')">${MODELS.mimo.haiku}</div>
       `;
-    }
-
-    function autoFill(name) {
-      const v = name.toLowerCase();
-      const key = v.includes('deep') ? 'deepseek' : v.includes('mimo') ? 'mimo' : null;
-      if (!key) return;
-      const url = currentTool === 'opencode' ? URLS.opencode[currentProvider][key] : URLS.claude[key];
-      document.getElementById('baseUrl').value = url;
-      document.getElementById('model').value = MODELS[key].main;
-      document.getElementById('haikuModel').value = MODELS[key].haiku;
-    }
-
-    function toggleToken() {
-      const input = document.getElementById('token');
-      const btn = document.getElementById('tokenBtn');
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.textContent = '🙈';
-      } else {
-        input.type = 'password';
-        btn.textContent = '👁';
       }
-    }
 
-    function toggleEditToken() {
-      const input = document.getElementById('editToken');
-      const btn = document.getElementById('editTokenBtn');
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.textContent = '🙈';
-      } else {
-        input.type = 'password';
-        btn.textContent = '👁';
+      function autoFill(name) {
+        const v = name.toLowerCase();
+        const key = v.includes("deep")
+          ? "deepseek"
+          : v.includes("mimo")
+            ? "mimo"
+            : null;
+        if (!key) return;
+        const url =
+          currentTool === "opencode"
+            ? URLS.opencode[currentProvider][key]
+            : URLS.claude[key];
+        document.getElementById("baseUrl").value = url;
+        document.getElementById("model").value = MODELS[key].main;
+        document.getElementById("haikuModel").value = MODELS[key].haiku;
       }
-    }
 
-    function clearForm() {
-      ['name','token','baseUrl','model','haikuModel'].forEach(id => document.getElementById(id).value = '');
-      document.getElementById('token').type = 'password';
-      document.getElementById('tokenBtn').textContent = '👁';
-      document.getElementById('provider').value = 'anthropic';
-      currentProvider = 'anthropic';
-    }
-
-    document.addEventListener('click', e => {
-      if (!e.target.closest('.input-with-btn')) {
-        document.querySelectorAll('.dropdown-menu.show').forEach(m => m.classList.remove('show'));
+      function toggleToken() {
+        const input = document.getElementById("token");
+        const btn = document.getElementById("tokenBtn");
+        if (input.type === "password") {
+          input.type = "text";
+          btn.textContent = "🙈";
+        } else {
+          input.type = "password";
+          btn.textContent = "👁";
+        }
       }
-    });
 
-    function switchTool(tool) {
-      currentTool = tool;
-      document.getElementById('toolTitle').textContent = tool === 'claude' ? 'Claude Code' : 'OpenCode';
-      document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
-      document.getElementById('nav-' + tool).classList.add('active');
-      document.getElementById('providerGroup').style.display = tool === 'opencode' ? 'block' : 'none';
-      document.getElementById('haikuGroup').style.display = tool === 'claude' ? 'block' : 'none';
-      clearForm();
-      updateDrops();
-      render();
-    }
+      function toggleEditToken() {
+        const input = document.getElementById("editToken");
+        const btn = document.getElementById("editTokenBtn");
+        if (input.type === "password") {
+          input.type = "text";
+          btn.textContent = "🙈";
+        } else {
+          input.type = "password";
+          btn.textContent = "👁";
+        }
+      }
 
-    async function loadConfigs() {
-      const res = await fetch('/api/configs');
-      const data = await res.json();
-      configs = data.configs || [];
-      activeId = data.activeId;
-      render();
-    }
+      function clearForm() {
+        ["name", "token", "baseUrl", "model", "haikuModel"].forEach(
+          (id) => (document.getElementById(id).value = ""),
+        );
+        document.getElementById("token").type = "password";
+        document.getElementById("tokenBtn").textContent = "👁";
+        document.getElementById("provider").value = "anthropic";
+        currentProvider = "anthropic";
+      }
 
-    function render() {
-      const list = document.getElementById('configList');
-      const filtered = configs.filter(c => c.type === currentTool);
-      if (!filtered.length) { list.innerHTML = '<div class="empty">暂无配置</div>'; return; }
-      
-      list.innerHTML = filtered.map(c => {
-        const isActive = c.id === activeId;
-        const icon = c.name.toLowerCase().includes('deep') ? '🔮' : '🤖';
-        return `
-          <div class="config-item ${isActive ? 'active' : ''}">
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".input-with-btn")) {
+          document
+            .querySelectorAll(".dropdown-menu.show")
+            .forEach((m) => m.classList.remove("show"));
+        }
+      });
+
+      function switchTool(tool) {
+        currentTool = tool;
+        document.getElementById("toolTitle").textContent =
+          tool === "claude" ? "Claude Code" : "OpenCode";
+        document
+          .querySelectorAll(".nav-item")
+          .forEach((el) => el.classList.remove("active"));
+        document.getElementById("nav-" + tool).classList.add("active");
+        document.getElementById("providerGroup").style.display =
+          tool === "opencode" ? "block" : "none";
+        document.getElementById("haikuGroup").style.display =
+          tool === "claude" ? "block" : "none";
+        clearForm();
+        updateDrops();
+        render();
+      }
+
+      async function loadConfigs() {
+        const res = await fetch("/api/configs");
+        const data = await res.json();
+        configs = data.configs || [];
+        activeClaudeId = data.activeClaudeId;
+        activeOpencodeId = data.activeOpencodeId;
+        render();
+      }
+
+      function render() {
+        const list = document.getElementById("configList");
+        const filtered = configs.filter((c) => c.type === currentTool);
+        const currentActiveId =
+          currentTool === "claude" ? activeClaudeId : activeOpencodeId;
+        if (!filtered.length) {
+          list.innerHTML = '<div class="empty">暂无配置</div>';
+          return;
+        }
+
+        list.innerHTML = filtered
+          .map((c) => {
+            const isActive = c.id === currentActiveId;
+            const icon = c.name.toLowerCase().includes("deep") ? "🔮" : "🤖";
+            return `
+          <div class="config-item ${isActive ? "active" : ""}">
             <div class="icon">${icon}</div>
             <div class="info">
               <div class="name">${c.name}</div>
-              <div class="detail">${c.model || '未设置'} · ${c.baseUrl || '默认'}</div>
+              <div class="detail">${c.model || "未设置"} · ${c.baseUrl || "默认"}</div>
             </div>
             <div class="actions">
-              <button class="btn-sm btn-switch" onclick="switchConfig('${c.id}')">${isActive ? '✓' : '切换'}</button>
+              <button class="btn-sm btn-switch" onclick="switchConfig('${c.id}')">${isActive ? "✓" : "切换"}</button>
               <button class="btn-sm btn-edit" onclick="editConfig('${c.id}')">编辑</button>
               <button class="btn-sm btn-del" onclick="deleteConfig('${c.id}')">×</button>
             </div>
           </div>
         `;
-      }).join('');
-    }
-
-    async function switchConfig(id) {
-      try {
-        const res = await fetch(`/api/switch/${id}`, { method: 'POST' });
-        const data = await res.json();
-        if (data.success) { showToast('切换成功'); activeId = id; render(); }
-      } catch (e) { showToast('失败', false); }
-    }
-
-    function editConfig(id) {
-      const c = configs.find(x => x.id === id);
-      if (!c) return;
-      document.getElementById('editId').value = c.id;
-      document.getElementById('editName').value = c.name;
-      document.getElementById('editToken').value = c.token;
-      document.getElementById('editBaseUrl').value = c.baseUrl;
-      document.getElementById('editModel').value = c.model;
-      document.getElementById('editHaikuModel').value = c.haikuModel || '';
-      document.getElementById('editHaikuGroup').style.display = c.type === 'claude' ? 'block' : 'none';
-      document.getElementById('editModal').classList.add('show');
-    }
-
-    function closeModal() { document.getElementById('editModal').classList.remove('show'); }
-
-    async function saveEdit() {
-      const id = document.getElementById('editId').value;
-      try {
-        const res = await fetch(`/api/configs/${id}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: document.getElementById('editName').value,
-            token: document.getElementById('editToken').value,
-            baseUrl: document.getElementById('editBaseUrl').value,
-            model: document.getElementById('editModel').value,
-            haikuModel: document.getElementById('editHaikuModel').value
           })
-        });
-        const data = await res.json();
-        if (data.success) { showToast('已更新'); closeModal(); loadConfigs(); }
-      } catch (e) { showToast('失败', false); }
-    }
+          .join("");
+      }
 
-    async function deleteConfig(id) {
-      if (!confirm('确定删除？')) return;
-      try {
-        await fetch(`/api/configs/${id}`, { method: 'DELETE' });
-        showToast('已删除');
-        loadConfigs();
-      } catch (e) { showToast('失败', false); }
-    }
+      async function switchConfig(id) {
+        try {
+          const res = await fetch(`/api/switch/${id}`, { method: "POST" });
+          const data = await res.json();
+          if (data.success) {
+            showToast("切换成功");
+            if (currentTool === "claude") activeClaudeId = id;
+            else activeOpencodeId = id;
+            render();
+          }
+        } catch (e) {
+          showToast("失败", false);
+        }
+      }
 
-    async function addConfig() {
-      const name = document.getElementById('name').value.trim();
-      if (!name) return showToast('请输入名称', false);
-      try {
-        const res = await fetch('/api/configs', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name, type: currentTool,
-            providerType: currentTool === 'opencode' ? document.getElementById('provider').value : undefined,
-            token: document.getElementById('token').value.trim(),
-            baseUrl: document.getElementById('baseUrl').value.trim(),
-            model: document.getElementById('model').value.trim(),
-            haikuModel: document.getElementById('haikuModel').value.trim()
-          })
-        });
-        const data = await res.json();
-        if (data.success) { showToast('已保存'); clearForm(); loadConfigs(); }
-      } catch (e) { showToast('失败', false); }
-    }
+      function editConfig(id) {
+        const c = configs.find((x) => x.id === id);
+        if (!c) return;
+        document.getElementById("editId").value = c.id;
+        document.getElementById("editName").value = c.name;
+        document.getElementById("editProvider").value =
+          c.providerType || "anthropic";
+        document.getElementById("editToken").value = c.token;
+        document.getElementById("editBaseUrl").value = c.baseUrl;
+        document.getElementById("editModel").value = c.model;
+        document.getElementById("editHaikuModel").value = c.haikuModel || "";
+        document.getElementById("editProviderGroup").style.display =
+          c.type === "opencode" ? "block" : "none";
+        document.getElementById("editHaikuGroup").style.display =
+          c.type === "claude" ? "block" : "none";
+        document.getElementById("editModal").classList.add("show");
+      }
 
-    function showToast(msg, ok = true) {
-      const el = document.getElementById('toast');
-      el.textContent = msg;
-      el.className = `toast ${ok ? 'success' : 'error'} show`;
-      setTimeout(() => el.classList.remove('show'), 2000);
-    }
+      function closeModal() {
+        document.getElementById("editModal").classList.remove("show");
+      }
 
-    updateDrops();
-    loadConfigs();
-  </script>
-</body>
+      async function saveEdit() {
+        const id = document.getElementById("editId").value;
+        const c = configs.find((x) => x.id === id);
+        try {
+          const res = await fetch(`/api/configs/${id}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name: document.getElementById("editName").value,
+              providerType: document.getElementById("editProvider").value,
+              token: document.getElementById("editToken").value,
+              baseUrl: document.getElementById("editBaseUrl").value,
+              model: document.getElementById("editModel").value,
+              haikuModel: document.getElementById("editHaikuModel").value,
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast("已更新");
+            closeModal();
+            loadConfigs();
+          }
+        } catch (e) {
+          showToast("失败", false);
+        }
+      }
+
+      async function deleteConfig(id) {
+        if (!confirm("确定删除？")) return;
+        try {
+          await fetch(`/api/configs/${id}`, { method: "DELETE" });
+          showToast("已删除");
+          loadConfigs();
+        } catch (e) {
+          showToast("失败", false);
+        }
+      }
+
+      async function addConfig() {
+        const name = document.getElementById("name").value.trim();
+        if (!name) return showToast("请输入名称", false);
+        try {
+          const res = await fetch("/api/configs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name,
+              type: currentTool,
+              providerType:
+                currentTool === "opencode"
+                  ? document.getElementById("provider").value
+                  : undefined,
+              token: document.getElementById("token").value.trim(),
+              baseUrl: document.getElementById("baseUrl").value.trim(),
+              model: document.getElementById("model").value.trim(),
+              haikuModel: document.getElementById("haikuModel").value.trim(),
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast("已保存");
+            clearForm();
+            loadConfigs();
+          }
+        } catch (e) {
+          showToast("失败", false);
+        }
+      }
+
+      function showToast(msg, ok = true) {
+        const el = document.getElementById("toast");
+        el.textContent = msg;
+        el.className = `toast ${ok ? "success" : "error"} show`;
+        setTimeout(() => el.classList.remove("show"), 2000);
+      }
+
+      updateDrops();
+      loadConfigs();
+    </script>
+  </body>
 </html>
