@@ -4,7 +4,88 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 配置切换器</title>
+    <!-- Lucide 图标库 -->
+    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+      :root {
+        --bg-primary: #f5f5f5;
+        --bg-secondary: #fff;
+        --bg-hover: #f8f8f8;
+        --bg-active: #f0f0f0;
+        --border-color: #eee;
+        --border-hover: #ddd;
+        --text-primary: #333;
+        --text-secondary: #666;
+        --text-muted: #999;
+        --text-hint: #bbb;
+        --input-bg: #fff;
+        --input-border: #ddd;
+        --btn-primary-bg: #333;
+        --btn-primary-hover: #555;
+        --btn-primary-color: #fff;
+        --btn-secondary-bg: #eee;
+        --btn-secondary-hover: #ddd;
+        --btn-danger-bg: #fee;
+        --btn-danger-color: #e74c3c;
+        --btn-danger-hover-bg: #e74c3c;
+        --btn-danger-hover-color: #fff;
+        --toast-success-bg: #333;
+        --toast-error-bg: #e74c3c;
+        --modal-overlay: rgba(0, 0, 0, 0.4);
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        --success-color: #4caf50;
+      }
+
+      [data-theme="dark"] {
+        --bg-primary: #1a1a1a;
+        --bg-secondary: #2a2a2a;
+        --bg-hover: #333;
+        --bg-active: #3a3a3a;
+        --border-color: #3a3a3a;
+        --border-hover: #4a4a4a;
+        --text-primary: #e0e0e0;
+        --text-secondary: #aaa;
+        --text-muted: #777;
+        --text-hint: #555;
+        --input-bg: #333;
+        --input-border: #4a4a4a;
+        --btn-primary-bg: #4a4a4a;
+        --btn-primary-hover: #5a5a5a;
+        --btn-primary-color: #e0e0e0;
+        --btn-secondary-bg: #3a3a3a;
+        --btn-secondary-hover: #4a4a4a;
+        --btn-danger-bg: #3a2020;
+        --btn-danger-color: #ff6b6b;
+        --btn-danger-hover-bg: #e74c3c;
+        --btn-danger-hover-color: #fff;
+        --toast-success-bg: #4a4a4a;
+        --toast-error-bg: #e74c3c;
+        --modal-overlay: rgba(0, 0, 0, 0.6);
+        --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        --success-color: #66bb6a;
+      }
+
+      /* Lucide 图标基础样式 */
+      [data-lucide] {
+        width: 16px;
+        height: 16px;
+        stroke-width: 2;
+        vertical-align: middle;
+        color: currentColor;
+      }
+      .icon-lg [data-lucide] {
+        width: 24px;
+        height: 24px;
+      }
+      .icon-sm [data-lucide] {
+        width: 14px;
+        height: 14px;
+      }
+      @keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -17,7 +98,7 @@
       }
       body {
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        background: #f5f5f5;
+        background: var(--bg-primary);
       }
       .layout {
         display: flex;
@@ -26,24 +107,96 @@
 
       .sidebar {
         width: 180px;
-        background: #fff;
-        border-right: 1px solid #eee;
+        background: var(--bg-secondary);
+        border-right: 1px solid var(--border-color);
         display: flex;
         flex-direction: column;
         flex-shrink: 0;
       }
       .sidebar-header {
         padding: 20px 16px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-color);
+        position: relative;
       }
       .sidebar-header h2 {
         font-size: 15px;
-        color: #333;
+        color: var(--text-primary);
       }
       .sidebar-header p {
         font-size: 11px;
-        color: #999;
+        color: var(--text-muted);
         margin-top: 4px;
+      }
+
+      .theme-toggle {
+        position: absolute;
+        top: 16px;
+        right: 12px;
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 50%;
+        background: var(--btn-secondary-bg);
+        color: var(--text-secondary);
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .theme-toggle:hover {
+        background: var(--btn-secondary-hover);
+      }
+
+      .sidebar-footer {
+        padding: 12px;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .btn-sidebar {
+        width: 100%;
+        padding: 7px;
+        border: 1px solid var(--border-color);
+        border-radius: 5px;
+        background: var(--bg-secondary);
+        color: var(--text-secondary);
+        font-size: 11px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn-sidebar:hover {
+        background: var(--bg-hover);
+        border-color: var(--border-hover);
+        color: var(--text-primary);
+      }
+      .btn-wizard {
+        background: var(--btn-primary-bg) !important;
+        color: var(--btn-primary-color) !important;
+        border-color: var(--btn-primary-bg) !important;
+      }
+      .btn-wizard:hover {
+        opacity: 0.9;
+      }
+      /* 全局滚动条美化 */
+      ::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+      }
+      ::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
       }
       .nav {
         flex: 1;
@@ -53,15 +206,17 @@
         padding: 10px 16px;
         cursor: pointer;
         font-size: 13px;
-        color: #666;
+        color: var(--text-secondary);
+        display: flex;
+        align-items: center;
       }
       .nav-item:hover {
-        background: #f8f8f8;
-        color: #333;
+        background: var(--bg-hover);
+        color: var(--text-primary);
       }
       .nav-item.active {
-        background: #f0f0f0;
-        color: #333;
+        background: var(--bg-active);
+        color: var(--text-primary);
         font-weight: 500;
       }
 
@@ -73,12 +228,12 @@
       }
       .content-header {
         padding: 16px 24px;
-        background: #fff;
-        border-bottom: 1px solid #eee;
+        background: var(--bg-secondary);
+        border-bottom: 1px solid var(--border-color);
       }
       .content-header h3 {
         font-size: 16px;
-        color: #333;
+        color: var(--text-primary);
       }
       .content-body {
         flex: 1;
@@ -87,16 +242,16 @@
       }
 
       .card {
-        background: #fff;
+        background: var(--bg-secondary);
         border-radius: 8px;
         padding: 14px;
         margin-bottom: 14px;
-        border: 1px solid #eee;
+        border: 1px solid var(--border-color);
       }
       .card-title {
         font-size: 11px;
         font-weight: 600;
-        color: #999;
+        color: var(--text-muted);
         margin-bottom: 10px;
         text-transform: uppercase;
       }
@@ -110,21 +265,34 @@
         display: flex;
         align-items: center;
         padding: 10px 12px;
-        border: 1px solid #eee;
+        border: 1px solid var(--border-color);
         border-radius: 6px;
         cursor: pointer;
       }
       .config-item:hover {
-        border-color: #ddd;
-        background: #fafafa;
+        border-color: var(--border-hover);
+        background: var(--bg-hover);
       }
       .config-item.active {
-        border-color: #333;
-        background: #f5f5f5;
+        border-color: var(--text-primary);
+        background: var(--bg-active);
+      }
+      .config-item.active .icon {
+        color: var(--text-primary);
       }
       .config-item .icon {
         font-size: 18px;
         margin-right: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 24px;
+        height: 24px;
+        color: var(--text-secondary);
+      }
+      .config-item .icon [data-lucide] {
+        width: 18px;
+        height: 18px;
       }
       .config-item .info {
         flex: 1;
@@ -133,11 +301,11 @@
       .config-item .name {
         font-size: 13px;
         font-weight: 600;
-        color: #333;
+        color: var(--text-primary);
       }
       .config-item .detail {
         font-size: 11px;
-        color: #999;
+        color: var(--text-muted);
         margin-top: 2px;
         white-space: nowrap;
         overflow: hidden;
@@ -149,6 +317,11 @@
         flex-shrink: 0;
         margin-left: 10px;
       }
+      .config-item .actions .btn-sm {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
       .config-item .btn-sm {
         padding: 4px 8px;
         border: none;
@@ -157,29 +330,41 @@
         cursor: pointer;
       }
       .config-item .btn-switch {
-        background: #333;
-        color: #fff;
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-color);
       }
       .config-item .btn-switch:hover {
-        background: #555;
+        background: var(--btn-primary-hover);
+      }
+      .config-item .btn-test {
+        background: var(--btn-secondary-bg);
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+      .config-item .btn-test:hover {
+        background: var(--btn-secondary-hover);
+      }
+      .config-item .btn-test.loading {
+        opacity: 0.6;
+        pointer-events: none;
       }
       .config-item .btn-edit {
-        background: #eee;
-        color: #666;
+        background: var(--btn-secondary-bg);
+        color: var(--text-secondary);
       }
       .config-item .btn-edit:hover {
-        background: #ddd;
+        background: var(--btn-secondary-hover);
       }
       .config-item .btn-del {
-        background: #fee;
-        color: #e74c3c;
+        background: var(--btn-danger-bg);
+        color: var(--btn-danger-color);
       }
       .config-item .btn-del:hover {
-        background: #e74c3c;
-        color: #fff;
+        background: var(--btn-danger-hover-bg);
+        color: var(--btn-danger-hover-color);
       }
       .config-item.active .btn-switch {
-        background: #4caf50;
+        background: var(--success-color);
       }
 
       .form-row {
@@ -196,7 +381,7 @@
         display: block;
         margin-bottom: 3px;
         font-size: 11px;
-        color: #666;
+        color: var(--text-secondary);
       }
 
       .input-with-btn {
@@ -206,61 +391,67 @@
       .input-with-btn input {
         flex: 1;
         padding: 7px 9px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--input-border);
         border-radius: 5px;
         font-size: 13px;
-        color: #333;
-        background: #fff;
+        color: var(--text-primary);
+        background: var(--input-bg);
       }
       .input-with-btn input:focus {
         outline: none;
-        border-color: #333;
+        border-color: var(--text-primary);
       }
       .input-with-btn .btn-drop {
         width: 28px;
         padding: 7px 0;
-        border: 1px solid #ddd;
+        border: 1px solid var(--input-border);
         border-left: none;
         border-radius: 0 5px 5px 0;
-        background: #fafafa;
+        background: var(--bg-hover);
         cursor: pointer;
         font-size: 10px;
-        color: #999;
+        color: var(--text-muted);
       }
       .input-with-btn .btn-drop:hover {
-        background: #f0f0f0;
+        background: var(--bg-active);
       }
 
       .dropdown-menu {
         position: absolute;
         left: 0;
         right: 28px;
-        background: #fff;
-        border: 1px solid #ddd;
+        background: var(--bg-secondary);
+        border: 1px solid var(--input-border);
         border-radius: 5px;
         margin-top: 2px;
-        max-height: 150px;
+        max-height: 200px;
         overflow-y: auto;
         z-index: 100;
         display: none;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        box-shadow: var(--shadow);
       }
       .dropdown-menu.show {
         display: block;
       }
+      .dropdown-menu.drop-up {
+        top: auto;
+        bottom: 100%;
+        margin-top: 0;
+        margin-bottom: 2px;
+      }
       .dropdown-menu .item {
         padding: 7px 10px;
         font-size: 12px;
-        color: #333;
+        color: var(--text-primary);
         cursor: pointer;
       }
       .dropdown-menu .item:hover {
-        background: #f5f5f5;
+        background: var(--bg-hover);
       }
 
       .form-group .hint {
         font-size: 10px;
-        color: #bbb;
+        color: var(--text-hint);
         margin-top: 2px;
       }
 
@@ -272,11 +463,11 @@
         font-size: 13px;
         font-weight: 600;
         cursor: pointer;
-        background: #333;
-        color: #fff;
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-color);
       }
       .btn-save:hover {
-        background: #555;
+        background: var(--btn-primary-hover);
       }
 
       .toast {
@@ -294,17 +485,17 @@
         transform: translateX(0);
       }
       .toast.success {
-        background: #333;
+        background: var(--toast-success-bg);
         color: #fff;
       }
       .toast.error {
-        background: #e74c3c;
+        background: var(--toast-error-bg);
         color: #fff;
       }
 
       .empty {
         text-align: center;
-        color: #ccc;
+        color: var(--text-hint);
         padding: 16px;
         font-size: 12px;
       }
@@ -313,7 +504,7 @@
         display: none;
         position: fixed;
         inset: 0;
-        background: rgba(0, 0, 0, 0.4);
+        background: var(--modal-overlay);
         z-index: 999;
         align-items: center;
         justify-content: center;
@@ -322,7 +513,7 @@
         display: flex;
       }
       .modal-box {
-        background: #fff;
+        background: var(--bg-secondary);
         border-radius: 10px;
         padding: 20px;
         width: 400px;
@@ -333,6 +524,7 @@
         font-size: 15px;
         font-weight: 600;
         margin-bottom: 16px;
+        color: var(--text-primary);
       }
       .modal-actions {
         display: flex;
@@ -348,12 +540,134 @@
         cursor: pointer;
       }
       .btn-cancel {
-        background: #eee;
-        color: #666;
+        background: var(--btn-secondary-bg);
+        color: var(--text-secondary);
       }
       .btn-confirm {
-        background: #333;
-        color: #fff;
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-color);
+      }
+
+      /* 配置向导样式 */
+      .wizard-step {
+        display: none;
+      }
+      .wizard-step.active {
+        display: block;
+      }
+      .wizard-progress {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .wizard-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--border-color);
+        transition: background 0.3s;
+      }
+      .wizard-dot.active {
+        background: var(--text-primary);
+      }
+      .wizard-dot.done {
+        background: var(--btn-primary-bg);
+      }
+      .provider-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+      .provider-option {
+        padding: 12px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        text-align: center;
+        transition: all 0.2s;
+      }
+      .provider-option:hover {
+        border-color: var(--border-hover);
+        background: var(--bg-hover);
+      }
+      .provider-option.selected {
+        border-color: var(--text-primary);
+        background: var(--bg-active);
+      }
+      .provider-option .icon {
+        font-size: 24px;
+        margin-bottom: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-secondary);
+      }
+      .provider-option .icon [data-lucide] {
+        width: 24px;
+        height: 24px;
+      }
+      .provider-option .label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      .wizard-nav {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .wizard-nav button {
+        flex: 1;
+        padding: 9px;
+        border: none;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .btn-prev {
+        background: var(--btn-secondary-bg);
+        color: var(--text-secondary);
+      }
+      .btn-next {
+        background: var(--btn-primary-bg);
+        color: var(--btn-primary-color);
+      }
+      /* 对话框样式 */
+      .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+      }
+      .dialog {
+        background: var(--card-bg);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 24px;
+        max-width: 400px;
+        width: 90%;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+      }
+      .dialog h3 {
+        margin: 0 0 8px 0;
+        color: var(--text-primary);
+      }
+      .dialog p {
+        margin: 0 0 20px 0;
+        color: var(--text-secondary);
+        line-height: 1.5;
+      }
+      .dialog-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
       }
     </style>
   </head>
@@ -363,6 +677,7 @@
         <div class="sidebar-header">
           <h2>配置切换器</h2>
           <p>Claude Code / OpenCode</p>
+          <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"><i data-lucide="moon"></i></button>
         </div>
         <div class="nav">
           <div
@@ -370,15 +685,21 @@
             onclick="switchTool('claude')"
             id="nav-claude"
           >
-            Claude Code
+            <i data-lucide="bot" style="margin-right: 6px"></i>Claude Code
           </div>
           <div
             class="nav-item"
             onclick="switchTool('opencode')"
             id="nav-opencode"
           >
-            OpenCode
+            <i data-lucide="terminal" style="margin-right: 6px"></i>OpenCode
           </div>
+        </div>
+        <div class="sidebar-footer">
+          <button class="btn-sidebar btn-wizard" onclick="openWizard()"><i data-lucide="wand-2" style="margin-right: 4px"></i>配置向导</button>
+          <button class="btn-sidebar" onclick="exportConfig()"><i data-lucide="download" style="margin-right: 4px"></i>导出配置</button>
+          <button class="btn-sidebar" onclick="document.getElementById('importFile').click()"><i data-lucide="upload" style="margin-right: 4px"></i>导入配置</button>
+          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importConfig(this)" />
         </div>
       </div>
       <div class="content">
@@ -405,16 +726,9 @@
                   oninput="autoFill(this.value)"
                 />
                 <button class="btn-drop" onclick="toggleDrop('nameDrop')">
-                  ▼
+                  <i data-lucide="chevron-down" class="icon-sm"></i>
                 </button>
-                <div class="dropdown-menu" id="nameDrop">
-                  <div class="item" onclick="pickValue('name', 'DeepSeek')">
-                    DeepSeek
-                  </div>
-                  <div class="item" onclick="pickValue('name', 'MiMo')">
-                    MiMo
-                  </div>
-                </div>
+                <div class="dropdown-menu" id="nameDrop"></div>
               </div>
             </div>
             <div id="providerGroup" style="display: none">
@@ -423,7 +737,7 @@
                 <div class="input-with-btn" style="position: relative">
                   <input type="text" id="provider" value="anthropic" readonly />
                   <button class="btn-drop" onclick="toggleDrop('providerDrop')">
-                    ▼
+                    <i data-lucide="chevron-down" class="icon-sm"></i>
                   </button>
                   <div class="dropdown-menu" id="providerDrop">
                     <div
@@ -437,7 +751,7 @@
                     </div>
                   </div>
                 </div>
-                <div class="hint">DeepSeek/MiMo 选 openai</div>
+                <div class="hint">DeepSeek/MiMo/OpenAI/Groq 选 openai，其余选 anthropic</div>
               </div>
             </div>
             <div class="form-group">
@@ -450,16 +764,16 @@
                   id="tokenBtn"
                   style="font-size: 12px"
                 >
-                  👁
+                  <i data-lucide="eye" class="icon-sm"></i>
                 </button>
               </div>
             </div>
             <div class="form-group">
               <label>Base URL</label>
               <div class="input-with-btn" style="position: relative">
-                <input type="text" id="baseUrl" placeholder="https://..." />
+                <input type="text" id="baseUrl" placeholder="https://..." oninput="onBaseUrlChange()" />
                 <button class="btn-drop" onclick="toggleDrop('urlDrop')">
-                  ▼
+                  <i data-lucide="chevron-down" class="icon-sm"></i>
                 </button>
                 <div class="dropdown-menu" id="urlDrop"></div>
               </div>
@@ -468,9 +782,9 @@
               <div class="form-group">
                 <label>模型</label>
                 <div class="input-with-btn" style="position: relative">
-                  <input type="text" id="model" placeholder="模型名称" />
+                  <input type="text" id="model" placeholder="模型名称" onfocus="autoFetchModels()" />
                   <button class="btn-drop" onclick="toggleDrop('modelDrop')">
-                    ▼
+                    <i data-lucide="chevron-down" class="icon-sm"></i>
                   </button>
                   <div class="dropdown-menu" id="modelDrop"></div>
                 </div>
@@ -478,9 +792,9 @@
               <div class="form-group" id="haikuGroup">
                 <label>Haiku 模型</label>
                 <div class="input-with-btn" style="position: relative">
-                  <input type="text" id="haikuModel" placeholder="可选" />
+                  <input type="text" id="haikuModel" placeholder="可选" onfocus="autoFetchModels('haikuModel', 'haikuDrop')" />
                   <button class="btn-drop" onclick="toggleDrop('haikuDrop')">
-                    ▼
+                    <i data-lucide="chevron-down" class="icon-sm"></i>
                   </button>
                   <div class="dropdown-menu" id="haikuDrop"></div>
                 </div>
@@ -528,7 +842,7 @@
               id="editTokenBtn"
               style="font-size: 12px"
             >
-              👁
+              <i data-lucide="eye" class="icon-sm"></i>
             </button>
           </div>
         </div>
@@ -565,72 +879,301 @@
       </div>
     </div>
 
+    <!-- 配置向导弹窗 -->
+    <div class="modal" id="wizardModal">
+      <div class="modal-box" style="width: 450px">
+        <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center">
+          配置向导
+          <button onclick="closeWizard()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; display: flex; align-items: center" onmouseover="this.style.color='var(--text-primary)'; this.style.background='var(--bg-hover)'" onmouseout="this.style.color='var(--text-muted)'; this.style.background='none'">
+            <i data-lucide="x"></i>
+          </button>
+        </div>
+        <div class="wizard-progress" id="wizardProgress">
+          <div class="wizard-dot active"></div>
+          <div class="wizard-dot"></div>
+          <div class="wizard-dot"></div>
+          <div class="wizard-dot"></div>
+          <div class="wizard-dot"></div>
+        </div>
+
+        <!-- 步骤1：选择工具 -->
+        <div class="wizard-step active" id="wizardStep1">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+            选择你要配置的工具
+          </p>
+          <div class="provider-grid">
+            <div class="provider-option" onclick="wizardSelectTool('claude', this)">
+              <div class="icon icon-lg"><i data-lucide="bot"></i></div>
+              <div class="label">Claude Code</div>
+            </div>
+            <div class="provider-option" onclick="wizardSelectTool('opencode', this)">
+              <div class="icon icon-lg"><i data-lucide="terminal"></i></div>
+              <div class="label">OpenCode</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 步骤2：选择 Provider（动态生成） -->
+        <div class="wizard-step" id="wizardStep2">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+            选择 API 提供商
+          </p>
+          <div class="provider-grid" id="wizardProviderGrid"></div>
+        </div>
+
+        <!-- 步骤3：填写 API Key -->
+        <div class="wizard-step" id="wizardStep3">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+            填写 <span id="wizardProviderName">DeepSeek</span> 的 API Key
+          </p>
+          <div class="form-group">
+            <label>API Key</label>
+            <div class="input-with-btn">
+              <input type="password" id="wizardToken" placeholder="sk-..." />
+              <button class="btn-drop" onclick="toggleWizardToken()" style="font-size: 12px"><i data-lucide="eye" class="icon-sm"></i></button>
+            </div>
+            <div class="hint">你的 Key 将仅保存在本地 config.json 中</div>
+          </div>
+        </div>
+
+        <!-- 步骤4：选择模型（动态获取） -->
+        <div class="wizard-step" id="wizardStep4">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+            选择模型
+          </p>
+          <div id="wizardModelLoading" style="text-align: center; padding: 24px; color: var(--text-muted)">
+            <i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 24px; height: 24px"></i>
+            <div style="margin-top: 8px; font-size: 12px">正在获取模型列表...</div>
+          </div>
+          <div id="wizardModelContent" style="display: none">
+            <div style="margin-bottom: 10px">
+              <input type="text" id="wizardModelSearch" placeholder="搜索模型..." style="width: 100%; padding: 7px 9px; border: 1px solid var(--input-border); border-radius: 5px; font-size: 13px; color: var(--text-primary); background: var(--input-bg)" oninput="filterWizardModels(this.value)" />
+            </div>
+            <div class="provider-grid" id="wizardModelGrid" style="max-height: 200px; overflow-y: auto"></div>
+            <div id="wizardModelHint" style="font-size: 10px; color: var(--text-hint); margin-top: 6px"></div>
+          </div>
+          <div id="wizardModelError" style="display: none; text-align: center; padding: 16px">
+            <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px" id="wizardModelErrorMsg"></div>
+            <div style="font-size: 11px; color: var(--text-hint)">请手动输入模型名称</div>
+          </div>
+        </div>
+
+        <!-- 步骤5：确认配置 -->
+        <div class="wizard-step" id="wizardStep5">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+            确认配置信息
+          </p>
+          <div class="card" style="margin-bottom: 0">
+            <div style="font-size: 12px; color: var(--text-secondary)">
+              <div style="margin-bottom: 8px"><strong>工具：</strong><span id="wizardSummaryTool">Claude Code</span></div>
+              <div style="margin-bottom: 8px"><strong>提供商：</strong><span id="wizardSummaryProvider">DeepSeek</span></div>
+              <div style="margin-bottom: 8px"><strong>模型：</strong><span id="wizardSummaryModel">deepseek-v4-pro</span></div>
+              <div><strong>Base URL：</strong><span id="wizardSummaryUrl">https://api.deepseek.com/anthropic</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="wizard-nav">
+          <button class="btn-prev" id="wizardPrev" onclick="wizardPrev()" style="display: none">上一步</button>
+          <button class="btn-next" id="wizardNext" onclick="wizardNext()">下一步</button>
+        </div>
+      </div>
+    </div>
+
     <script>
       let configs = [];
       let activeClaudeId = null;
       let activeOpencodeId = null;
       let currentTool = "claude";
       let currentProvider = "anthropic";
+      let presets = { urls: {}, models: {}, providers: {} };
 
-      const URLS = {
-        claude: {
-          deepseek: "https://api.deepseek.com/anthropic",
-          mimo: "https://token-plan-sgp.xiaomimimo.com/anthropic",
-        },
-        opencode: {
-          anthropic: {
-            deepseek: "https://api.deepseek.com/anthropic",
-            mimo: "https://token-plan-sgp.xiaomimimo.com/anthropic",
-          },
-          openai: {
-            deepseek: "https://api.deepseek.com/v1",
-            mimo: "https://token-plan-sgp.xiaomimimo.com/v1",
-          },
-        },
-      };
+      // 转义 HTML 特殊字符，防止 XSS
+      function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+      }
 
-      const MODELS = {
-        deepseek: { main: "deepseek-v4-pro", haiku: "deepseek-v4-flash" },
-        mimo: { main: "mimo-v2.5-pro", haiku: "mimo-v2.5-pro" },
-      };
+      // URLS 和 MODELS 从 presets.json 动态加载，兼容旧配置使用 presets.urls / presets.models
 
       function toggleDrop(id) {
         const el = document.getElementById(id);
+        const wasOpen = el.classList.contains("show");
+        // 关闭其他下拉
         document.querySelectorAll(".dropdown-menu.show").forEach((m) => {
-          if (m !== el) m.classList.remove("show");
+          if (m !== el) { m.classList.remove("show", "drop-up"); }
         });
-        el.classList.toggle("show");
+        if (wasOpen) {
+          el.classList.remove("show", "drop-up");
+          return;
+        }
+        // 智能定位：检测是否会超出视口底部
+        const container = el.closest(".input-with-btn") || el.parentElement;
+        const rect = container.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        const spaceAbove = rect.top;
+        // 如果下方空间不足且上方空间更大，向上弹出
+        if (spaceBelow < 210 && spaceAbove > spaceBelow) {
+          el.classList.add("drop-up");
+        } else {
+          el.classList.remove("drop-up");
+        }
+        el.classList.add("show");
       }
 
       function pickValue(inputId, value) {
         document.getElementById(inputId).value = value;
         document
           .querySelectorAll(".dropdown-menu.show")
-          .forEach((m) => m.classList.remove("show"));
+          .forEach((m) => m.classList.remove("show", "drop-up"));
         if (inputId === "provider") {
           currentProvider = value;
           updateDrops();
         }
         if (inputId === "name") autoFill(value);
+        if (inputId === "baseUrl") {
+          onBaseUrlChange();
+        }
+        // 选择模型时，自动同步到 Haiku 模型
+        if (inputId === "model") {
+          const haikuInput = document.getElementById("haikuModel");
+          if (!haikuInput.value) {
+            haikuInput.value = value;
+          }
+        }
       }
 
+      // Base URL 变化时自动获取模型
+      let _baseUrlChangeTimer = null;
+      function onBaseUrlChange() {
+        clearTimeout(_baseUrlChangeTimer);
+        _baseUrlChangeTimer = setTimeout(() => {
+          autoFetchModels();
+        }, 500);
+      }
+
+      // 根据 URL 推断厂商名称
+      function detectProviderFromUrl(url) {
+        if (!url) return null;
+        const lower = url.toLowerCase();
+        if (lower.includes("deepseek")) return "deepseek";
+        if (lower.includes("mimo") || lower.includes("xiaomi")) return "mimo";
+        if (lower.includes("openai")) return "openai";
+        if (lower.includes("gemini") || lower.includes("google")) return "gemini";
+        if (lower.includes("bigmodel") || lower.includes("glm")) return "glm";
+        if (lower.includes("moonshot") || lower.includes("kimi")) return "kimi";
+        if (lower.includes("mistral")) return "mistral";
+        if (lower.includes("groq")) return "groq";
+        return null;
+      }
+
+      // 自动获取模型（不需要 API Key）
+      let _fetchModelsTimer = null;
+      async function autoFetchModels(inputId = "model", dropId = "modelDrop") {
+        const baseUrl = document.getElementById("baseUrl").value.trim();
+        if (!baseUrl) return;
+
+        // 从 URL 推断厂商
+        const providerName = detectProviderFromUrl(baseUrl);
+        if (!providerName) return;
+
+        // 防抖：避免频繁请求
+        clearTimeout(_fetchModelsTimer);
+        _fetchModelsTimer = setTimeout(async () => {
+          const drop = document.getElementById(dropId);
+          const container = drop.closest(".input-with-btn") || drop.parentElement;
+          const rect = container.getBoundingClientRect();
+          if (window.innerHeight - rect.bottom < 210 && rect.top > window.innerHeight - rect.bottom) {
+            drop.classList.add("drop-up");
+          } else {
+            drop.classList.remove("drop-up");
+          }
+
+          // 显示加载状态
+          drop.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 12px"><i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 14px; height: 14px"></i> 获取模型...</div>';
+          drop.classList.add("show");
+          lucide.createIcons();
+
+          // 从 API 获取模型
+          const providerType = currentProvider;
+          try {
+            const res = await fetch("/api/fetch-models", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ baseUrl, apiKey: "", providerType, providerName }),
+            });
+            const data = await res.json();
+            if (data.models && data.models.length > 0) {
+              drop.innerHTML = data.models.map(m =>
+                `<div class="item" onclick="pickValue('${inputId}','${m.id.replace(/'/g, "\\'")}')">${escapeHtml(m.name || m.id)}</div>`
+              ).join("");
+            } else {
+              drop.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 12px">${data.error || "未获取到模型，请手动输入"}</div>`;
+            }
+          } catch (e) {
+            drop.innerHTML = '<div style="padding: 10px; color: var(--text-muted); font-size: 12px">获取失败，请手动输入</div>';
+          }
+
+          lucide.createIcons();
+        }, 300);
+      }
+
+      // 从 API 获取模型列表并显示在下拉菜单（手动触发）
+      async function fetchAndShowModels(inputId, dropId) {
+        const baseUrl = document.getElementById("baseUrl").value.trim();
+        const apiKey = document.getElementById("token").value.trim();
+        const providerType = currentProvider;
+        if (!baseUrl) {
+          return showToast("请先填写 Base URL", false);
+        }
+        const drop = document.getElementById(dropId);
+        drop.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 12px"><i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 14px; height: 14px"></i> 获取中...</div>';
+        const container = drop.closest(".input-with-btn") || drop.parentElement;
+        const rect = container.getBoundingClientRect();
+        if (window.innerHeight - rect.bottom < 210 && rect.top > window.innerHeight - rect.bottom) {
+          drop.classList.add("drop-up");
+        } else {
+          drop.classList.remove("drop-up");
+        }
+        drop.classList.add("show");
+        lucide.createIcons();
+
+        const nameInput = document.getElementById("name").value.trim();
+        const providerName = nameInput || detectProviderFromUrl(baseUrl) || "";
+        try {
+          const res = await fetch("/api/fetch-models", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ baseUrl, apiKey, providerType, providerName }),
+          });
+          const data = await res.json();
+          if (data.models && data.models.length > 0) {
+            drop.innerHTML = data.models.map(m =>
+              `<div class="item" onclick="pickValue('${inputId}','${m.id.replace(/'/g, "\\'")}')">${escapeHtml(m.name || m.id)}</div>`
+            ).join("");
+          } else {
+            drop.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 12px">${data.error || "未获取到模型，请手动输入"}</div>`;
+          }
+        } catch (e) {
+          drop.innerHTML = '<div style="padding: 10px; color: var(--text-muted); font-size: 12px">获取失败，请手动输入</div>';
+        }
+      }
+
+      // 根据当前工具和 Provider 更新下拉菜单选项
       function updateDrops() {
         const urls =
           currentTool === "opencode"
-            ? URLS.opencode[currentProvider]
-            : URLS.claude;
-        document.getElementById("urlDrop").innerHTML = `
-        <div class="item" onclick="pickValue('baseUrl','${urls.deepseek}')">${urls.deepseek}</div>
-        <div class="item" onclick="pickValue('baseUrl','${urls.mimo}')">${urls.mimo}</div>
-      `;
-        document.getElementById("modelDrop").innerHTML = `
-        <div class="item" onclick="pickValue('model','${MODELS.deepseek.main}')">${MODELS.deepseek.main}</div>
-        <div class="item" onclick="pickValue('model','${MODELS.mimo.main}')">${MODELS.mimo.main}</div>
-      `;
-        document.getElementById("haikuDrop").innerHTML = `
-        <div class="item" onclick="pickValue('haikuModel','${MODELS.deepseek.haiku}')">${MODELS.deepseek.haiku}</div>
-        <div class="item" onclick="pickValue('haikuModel','${MODELS.mimo.haiku}')">${MODELS.mimo.haiku}</div>
-      `;
+            ? (presets.urls.opencode || {})[currentProvider] || {}
+            : presets.urls.claude || {};
+        // 生成 URL 下拉选项
+        const urlItems = Object.entries(urls)
+          .map(([key, url]) => `<div class="item" onclick="pickValue('baseUrl','${url}')">${url}</div>`)
+          .join("");
+        document.getElementById("urlDrop").innerHTML = urlItems;
+        // 模型下拉清空，等待自动获取或手动输入
+        document.getElementById("modelDrop").innerHTML = "";
+        document.getElementById("haikuDrop").innerHTML = "";
       }
 
       function autoFill(name) {
@@ -639,15 +1182,28 @@
           ? "deepseek"
           : v.includes("mimo")
             ? "mimo"
-            : null;
+            : v.includes("openai") || v.includes("gpt")
+              ? "openai"
+              : v.includes("gemini")
+                ? "gemini"
+                : v.includes("glm")
+                  ? "glm"
+                  : v.includes("kimi") || v.includes("moonshot")
+                    ? "kimi"
+                    : v.includes("mistral")
+                      ? "mistral"
+                      : v.includes("groq")
+                        ? "groq"
+                        : null;
         if (!key) return;
         const url =
           currentTool === "opencode"
-            ? URLS.opencode[currentProvider][key]
-            : URLS.claude[key];
+            ? (presets.urls.opencode || {})[currentProvider]?.[key] || ""
+            : (presets.urls.claude || {})[key] || "";
         document.getElementById("baseUrl").value = url;
-        document.getElementById("model").value = MODELS[key].main;
-        document.getElementById("haikuModel").value = MODELS[key].haiku;
+        // 清空模型，等待自动获取
+        document.getElementById("model").value = "";
+        document.getElementById("haikuModel").value = "";
 
         // 自动填充 extraBody
         if (currentTool === "opencode" && key === "deepseek") {
@@ -655,6 +1211,9 @@
         } else {
           document.getElementById("extraBody").value = "";
         }
+
+        // 触发自动获取模型
+        setTimeout(() => autoFetchModels(), 100);
       }
 
       function toggleToken() {
@@ -662,11 +1221,12 @@
         const btn = document.getElementById("tokenBtn");
         if (input.type === "password") {
           input.type = "text";
-          btn.textContent = "🙈";
+          btn.innerHTML = '<i data-lucide="eye-off" class="icon-sm"></i>';
         } else {
           input.type = "password";
-          btn.textContent = "👁";
+          btn.innerHTML = '<i data-lucide="eye" class="icon-sm"></i>';
         }
+        lucide.createIcons();
       }
 
       function toggleEditToken() {
@@ -674,11 +1234,12 @@
         const btn = document.getElementById("editTokenBtn");
         if (input.type === "password") {
           input.type = "text";
-          btn.textContent = "🙈";
+          btn.innerHTML = '<i data-lucide="eye-off" class="icon-sm"></i>';
         } else {
           input.type = "password";
-          btn.textContent = "👁";
+          btn.innerHTML = '<i data-lucide="eye" class="icon-sm"></i>';
         }
+        lucide.createIcons();
       }
 
       function clearForm() {
@@ -691,7 +1252,8 @@
           "extraBody",
         ].forEach((id) => (document.getElementById(id).value = ""));
         document.getElementById("token").type = "password";
-        document.getElementById("tokenBtn").textContent = "👁";
+        document.getElementById("tokenBtn").innerHTML = '<i data-lucide="eye" class="icon-sm"></i>';
+        lucide.createIcons();
         document.getElementById("provider").value = "anthropic";
         currentProvider = "anthropic";
       }
@@ -745,23 +1307,28 @@
         list.innerHTML = filtered
           .map((c) => {
             const isActive = c.id === currentActiveId;
-            const icon = c.name.toLowerCase().includes("deep") ? "🔮" : "🤖";
+            const nameLower = c.name.toLowerCase();
+            // 从预设中查找图标，未匹配则用默认图标
+            const providerKey = Object.keys(presets.providers || {}).find(k => nameLower.includes(k));
+            const iconName = providerKey ? (presets.providers[providerKey]?.icon || "bot") : "bot";
             return `
           <div class="config-item ${isActive ? "active" : ""}">
-            <div class="icon">${icon}</div>
+            <div class="icon"><i data-lucide="${iconName}"></i></div>
             <div class="info">
-              <div class="name">${c.name}</div>
-              <div class="detail">${c.model || "未设置"} · ${c.baseUrl || "默认"}</div>
+              <div class="name">${escapeHtml(c.name)}</div>
+              <div class="detail">${escapeHtml(c.model || "未设置")} · ${escapeHtml(c.baseUrl || "默认")}</div>
             </div>
             <div class="actions">
-              <button class="btn-sm btn-switch" onclick="switchConfig('${c.id}')">${isActive ? "✓" : "切换"}</button>
-              <button class="btn-sm btn-edit" onclick="editConfig('${c.id}')">编辑</button>
-              <button class="btn-sm btn-del" onclick="deleteConfig('${c.id}')">×</button>
+              <button class="btn-sm btn-test" onclick="testConfig('${c.id}', this)" title="测试连接"><i data-lucide="plug" class="icon-sm"></i></button>
+              <button class="btn-sm btn-switch" onclick="switchConfig('${c.id}')">${isActive ? '<i data-lucide="check" class="icon-sm"></i>' : "切换"}</button>
+              <button class="btn-sm btn-edit" onclick="editConfig('${c.id}')"><i data-lucide="pencil" class="icon-sm"></i></button>
+              <button class="btn-sm btn-del" onclick="deleteConfig('${c.id}')"><i data-lucide="trash-2" class="icon-sm"></i></button>
             </div>
           </div>
         `;
           })
           .join("");
+        lucide.createIcons();
       }
 
       async function switchConfig(id) {
@@ -786,7 +1353,7 @@
         document.getElementById("editName").value = c.name;
         document.getElementById("editProvider").value =
           c.providerType || "anthropic";
-        document.getElementById("editToken").value = c.token;
+        document.getElementById("editToken").value = c.apiKey || c.token || "";
         document.getElementById("editBaseUrl").value = c.baseUrl;
         document.getElementById("editModel").value = c.model;
         document.getElementById("editHaikuModel").value = c.haikuModel || "";
@@ -817,7 +1384,7 @@
             body: JSON.stringify({
               name: document.getElementById("editName").value,
               providerType: document.getElementById("editProvider").value,
-              token: document.getElementById("editToken").value,
+              apiKey: document.getElementById("editToken").value,
               baseUrl: document.getElementById("editBaseUrl").value,
               model: document.getElementById("editModel").value,
               haikuModel: document.getElementById("editHaikuModel").value,
@@ -860,7 +1427,7 @@
                 currentTool === "opencode"
                   ? document.getElementById("provider").value
                   : undefined,
-              token: document.getElementById("token").value.trim(),
+              apiKey: document.getElementById("token").value.trim(),
               baseUrl: document.getElementById("baseUrl").value.trim(),
               model: document.getElementById("model").value.trim(),
               haikuModel: document.getElementById("haikuModel").value.trim(),
@@ -885,8 +1452,426 @@
         setTimeout(() => el.classList.remove("show"), 2000);
       }
 
-      updateDrops();
-      loadConfigs();
+      // 内置预设数据（作为降级方案，当 API 不可用时使用）
+      const BUILTIN_PRESETS = {"urls":{"claude":{"deepseek":"https://api.deepseek.com/anthropic","mimo":"https://token-plan-sgp.xiaomimimo.com/anthropic","openai":"https://api.openai.com/v1","gemini":"https://generativelanguage.googleapis.com/v1beta","glm":"https://open.bigmodel.cn/api/paas/v4","kimi":"https://api.moonshot.cn/v1","mistral":"https://api.mistral.ai/v1","groq":"https://api.groq.com/openai/v1"},"opencode":{"anthropic":{"deepseek":"https://api.deepseek.com/anthropic","mimo":"https://token-plan-sgp.xiaomimimo.com/anthropic","openai":"https://api.openai.com/v1","gemini":"https://generativelanguage.googleapis.com/v1beta","glm":"https://open.bigmodel.cn/api/paas/v4","kimi":"https://api.moonshot.cn/v1","mistral":"https://api.mistral.ai/v1","groq":"https://api.groq.com/openai/v1"},"openai":{"deepseek":"https://api.deepseek.com/v1","mimo":"https://token-plan-sgp.xiaomimimo.com/v1","openai":"https://api.openai.com/v1","gemini":"https://generativelanguage.googleapis.com/v1beta","glm":"https://open.bigmodel.cn/api/paas/v4","kimi":"https://api.moonshot.cn/v1","mistral":"https://api.mistral.ai/v1","groq":"https://api.groq.com/openai/v1"}}},"models":{"deepseek":{"main":"deepseek-v4-pro","haiku":"deepseek-v4-flash"},"mimo":{"main":"mimo-v2.5-pro","haiku":"mimo-v2.5-pro"},"openai":{"main":"gpt-4o","haiku":"gpt-4o-mini"},"gemini":{"main":"gemini-2.5-pro","haiku":"gemini-2.5-flash"},"glm":{"main":"glm-4-plus","haiku":"glm-4-flash"},"kimi":{"main":"moonshot-v1-128k","haiku":"moonshot-v1-8k"},"mistral":{"main":"mistral-large-latest","haiku":"mistral-small-latest"},"groq":{"main":"llama-3.3-70b-versatile","haiku":"llama-3.1-8b-instant"}},"providers":{"deepseek":{"providerType":"openai","icon":"sparkles"},"mimo":{"providerType":"openai","icon":"cpu"},"openai":{"providerType":"openai","icon":"globe"},"gemini":{"providerType":"anthropic","icon":"gem"},"glm":{"providerType":"anthropic","icon":"brain"},"kimi":{"providerType":"anthropic","icon":"moon"},"mistral":{"providerType":"anthropic","icon":"wind"},"groq":{"providerType":"openai","icon":"zap"}}};
+
+      // 加载预设数据后初始化界面
+      async function loadPresets() {
+        try {
+          const res = await fetch("/api/presets");
+          if (res.ok) {
+            presets = await res.json();
+          } else {
+            presets = BUILTIN_PRESETS;
+          }
+        } catch (e) {
+          presets = BUILTIN_PRESETS;
+        }
+        // 动态生成名称下拉选项
+        const nameDrop = document.getElementById("nameDrop");
+        if (nameDrop && presets.providers) {
+          nameDrop.innerHTML = Object.entries(presets.providers)
+            .map(([key]) => {
+              const label = key.charAt(0).toUpperCase() + key.slice(1);
+              return `<div class="item" onclick="pickValue('name', '${label}')">${label}</div>`;
+            }).join("");
+        }
+        updateDrops();
+        loadConfigs();
+        lucide.createIcons();
+      }
+      loadPresets();
+
+      // 配置向导
+      let wizardState = {
+        step: 1,
+        tool: null,
+        providerName: null,
+        providerType: null,
+        token: "",
+      };
+
+      function openWizard() {
+        wizardState = { step: 1, tool: null, providerName: null, providerType: null, token: "", selectedModel: null, _fetchedModels: [] };
+        // 重置向导中的 token 输入状态
+        const wizardTokenInput = document.getElementById("wizardToken");
+        if (wizardTokenInput) {
+          wizardTokenInput.type = "password";
+          wizardTokenInput.value = "";
+          const btn = wizardTokenInput.nextElementSibling;
+          if (btn) btn.innerHTML = '<i data-lucide="eye" class="icon-sm"></i>';
+        }
+        // 重置 Provider 网格渲染标记，确保每次打开都重新生成
+        const grid = document.getElementById("wizardProviderGrid");
+        if (grid) delete grid.dataset.rendered;
+        // 重置模型选择步骤的 UI
+        const modelLoading = document.getElementById("wizardModelLoading");
+        const modelContent = document.getElementById("wizardModelContent");
+        const modelError = document.getElementById("wizardModelError");
+        if (modelLoading) modelLoading.style.display = "block";
+        if (modelContent) modelContent.style.display = "none";
+        if (modelError) modelError.style.display = "none";
+        const modelSearch = document.getElementById("wizardModelSearch");
+        if (modelSearch) modelSearch.value = "";
+        // 清除 provider 选项的选中状态
+        document.querySelectorAll("#wizardProviderGrid .provider-option").forEach(o => o.classList.remove("selected"));
+        document.querySelectorAll("#wizardStep1 .provider-option").forEach(o => o.classList.remove("selected"));
+        document.getElementById("wizardModal").classList.add("show");
+        wizardUpdateUI();
+        lucide.createIcons();
+      }
+
+      function closeWizard() {
+        document.getElementById("wizardModal").classList.remove("show");
+      }
+
+      function wizardUpdateUI() {
+        // 更新步骤显示
+        for (let i = 1; i <= 5; i++) {
+          document.getElementById(`wizardStep${i}`).classList.toggle("active", i === wizardState.step);
+        }
+        // 更新进度点
+        const dots = document.querySelectorAll("#wizardProgress .wizard-dot");
+        dots.forEach((dot, i) => {
+          dot.className = "wizard-dot" + (i + 1 === wizardState.step ? " active" : i + 1 < wizardState.step ? " done" : "");
+        });
+        // 更新按钮
+        document.getElementById("wizardPrev").style.display = wizardState.step > 1 ? "block" : "none";
+        document.getElementById("wizardNext").textContent = wizardState.step === 5 ? "完成" : "下一步";
+        // 动态生成 Provider 网格
+        if (wizardState.step === 2) {
+          const grid = document.getElementById("wizardProviderGrid");
+          if (!grid.dataset.rendered) {
+            const providerEntries = Object.entries(presets.providers || {});
+            grid.innerHTML = providerEntries.map(([key, p]) => {
+              const label = key.charAt(0).toUpperCase() + key.slice(1);
+              return `<div class="provider-option" onclick="wizardSelectProvider('${label}', '${p.providerType}', this)">
+                <div class="icon icon-lg"><i data-lucide="${p.icon || 'bot'}"></i></div>
+                <div class="label">${label}</div>
+              </div>`;
+            }).join("");
+            grid.dataset.rendered = "1";
+            lucide.createIcons();
+          }
+        }
+        // 步骤 4：自动获取模型列表
+        if (wizardState.step === 4) {
+          wizardFetchModels();
+        }
+        // 更新摘要
+        if (wizardState.step === 5) {
+          document.getElementById("wizardSummaryTool").textContent = wizardState.tool === "claude" ? "Claude Code" : "OpenCode";
+          document.getElementById("wizardSummaryProvider").textContent = wizardState.providerName;
+          document.getElementById("wizardSummaryModel").textContent = wizardState.selectedModel || "未设置";
+          const key = wizardState.providerName.toLowerCase();
+          const url = wizardState.tool === "opencode"
+            ? (presets.urls.opencode || {})[wizardState.providerType]?.[key] || ""
+            : (presets.urls.claude || {})[key] || "";
+          document.getElementById("wizardSummaryUrl").textContent = url || "默认";
+        }
+      }
+
+      function wizardSelectTool(tool, el) {
+        wizardState.tool = tool;
+        el.parentElement.querySelectorAll(".provider-option").forEach(o => o.classList.remove("selected"));
+        el.classList.add("selected");
+      }
+
+      function wizardSelectProvider(name, type, el) {
+        wizardState.providerName = name;
+        wizardState.providerType = type;
+        el.parentElement.querySelectorAll(".provider-option").forEach(o => o.classList.remove("selected"));
+        el.classList.add("selected");
+        document.getElementById("wizardProviderName").textContent = name;
+      }
+
+      function wizardNext() {
+        if (wizardState.step === 1) {
+          if (!wizardState.tool) return showToast("请选择工具", false);
+          wizardState.step = 2;
+        } else if (wizardState.step === 2) {
+          if (!wizardState.providerName) return showToast("请选择提供商", false);
+          wizardState.step = 3;
+        } else if (wizardState.step === 3) {
+          wizardState.token = document.getElementById("wizardToken").value.trim();
+          if (!wizardState.token) return showToast("请输入 API Key", false);
+          wizardState.step = 4;
+        } else if (wizardState.step === 4) {
+          if (!wizardState.selectedModel) return showToast("请选择模型", false);
+          wizardState.step = 5;
+        } else if (wizardState.step === 5) {
+          wizardSave();
+          return;
+        }
+        wizardUpdateUI();
+      }
+
+      function wizardPrev() {
+        if (wizardState.step > 1) {
+          wizardState.step--;
+          wizardUpdateUI();
+        }
+      }
+
+      // 获取模型列表
+      async function wizardFetchModels() {
+        const loading = document.getElementById("wizardModelLoading");
+        const content = document.getElementById("wizardModelContent");
+        const error = document.getElementById("wizardModelError");
+        loading.style.display = "block";
+        content.style.display = "none";
+        error.style.display = "none";
+
+        const key = wizardState.providerName.toLowerCase();
+        const baseUrl = wizardState.tool === "opencode"
+          ? (presets.urls.opencode || {})[wizardState.providerType]?.[key] || ""
+          : (presets.urls.claude || {})[key] || "";
+
+        try {
+          const res = await fetch("/api/fetch-models", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ baseUrl, apiKey: wizardState.token, providerType: wizardState.providerType, providerName: wizardState.providerName }),
+          });
+          const data = await res.json();
+          if (data.models && data.models.length > 0) {
+            loading.style.display = "none";
+            content.style.display = "block";
+            wizardState._fetchedModels = data.models;
+            renderWizardModels(data.models);
+            document.getElementById("wizardModelHint").textContent = `共 ${data.models.length} 个模型，从 ${wizardState.providerName} API 获取`;
+          } else {
+            throw new Error(data.error || "未获取到模型");
+          }
+        } catch (e) {
+          loading.style.display = "none";
+          error.style.display = "block";
+          document.getElementById("wizardModelErrorMsg").textContent = e.message || "获取模型失败，请手动输入模型名称";
+        }
+        lucide.createIcons();
+      }
+
+      // 渲染模型选择网格
+      function renderWizardModels(models, isFallback) {
+        const gridId = isFallback ? "wizardFallbackModelGrid" : "wizardModelGrid";
+        const grid = document.getElementById(gridId);
+        grid.innerHTML = models.map(m =>
+          `<div class="provider-option" onclick="wizardSelectModel('${m.id.replace(/'/g, "\\'")}', this)" title="${m.id}">
+            <div class="label" style="font-size: 11px; word-break: break-all">${escapeHtml(m.name || m.id)}</div>
+          </div>`
+        ).join("");
+      }
+
+      // 选择模型
+      function wizardSelectModel(modelId, el) {
+        wizardState.selectedModel = modelId;
+        // 清除同级选中状态
+        el.parentElement.querySelectorAll(".provider-option").forEach(o => o.classList.remove("selected"));
+        el.classList.add("selected");
+      }
+
+      // 搜索过滤模型
+      function filterWizardModels(query) {
+        const q = query.toLowerCase();
+        const models = wizardState._fetchedModels || [];
+        const filtered = q ? models.filter(m => m.id.toLowerCase().includes(q)) : models;
+        renderWizardModels(filtered);
+      }
+
+      function toggleWizardToken() {
+        const input = document.getElementById("wizardToken");
+        const btn = input.nextElementSibling;
+        if (input.type === "password") {
+          input.type = "text";
+          btn.innerHTML = '<i data-lucide="eye-off" class="icon-sm"></i>';
+        } else {
+          input.type = "password";
+          btn.innerHTML = '<i data-lucide="eye" class="icon-sm"></i>';
+        }
+        lucide.createIcons();
+      }
+
+      async function wizardSave() {
+        const name = wizardState.providerName;
+        const key = name.toLowerCase();
+        const url = wizardState.tool === "opencode"
+          ? (presets.urls.opencode || {})[wizardState.providerType]?.[key] || ""
+          : (presets.urls.claude || {})[key] || "";
+        const model = wizardState.selectedModel || "";
+
+        try {
+          const res = await fetch("/api/configs", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              name,
+              type: wizardState.tool,
+              providerType: wizardState.providerType,
+              apiKey: wizardState.token,
+              baseUrl: url,
+              model,
+              haikuModel: "",
+            }),
+          });
+          const data = await res.json();
+          if (data.success) {
+            showToast("配置已保存");
+            closeWizard();
+            loadConfigs();
+          }
+        } catch (e) {
+          showToast("保存失败", false);
+        }
+      }
+
+      // 测试 API Key 连通性（新版本：自动提示切换配置）
+      async function testConfig(id, btn) {
+        btn.classList.add("loading");
+        btn.innerHTML = '<i data-lucide="loader-2" class="icon-sm" style="animation: spin 1s linear infinite"></i>';
+        lucide.createIcons();
+        try {
+          const res = await fetch(`/api/test/${id}`, { method: "POST" });
+          const data = await res.json();
+
+          if (data.success) {
+            // API 连通且本地配置正确
+            showToast(`${data.message} (${data.elapsed}ms)`);
+            btn.innerHTML = '<i data-lucide="check-circle" class="icon-sm"></i>';
+          } else if (data.apiOk && data.needSwitch) {
+            // API 连通但本地配置未切换，提示用户是否自动切换
+            const shouldSwitch = await showConfirmDialog(
+              "API 连通成功",
+              `API 连接正常，但本地配置未切换到此配置。\n\n当前本地配置：${data.localDetail}\n\n是否自动切换配置？`,
+              "切换配置",
+              "暂不切换"
+            );
+            if (shouldSwitch) {
+              await switchConfig(id);
+              showToast("配置已切换，现在可以正常使用");
+              btn.innerHTML = '<i data-lucide="check-circle" class="icon-sm"></i>';
+            } else {
+              showToast("API 连通，但本地配置未切换", true);
+              btn.innerHTML = '<i data-lucide="alert-triangle" class="icon-sm"></i>';
+            }
+          } else {
+            // API 不连通或其他错误
+            const localMsg = data.localDetail ? `\n本地配置：${data.localDetail}` : "";
+            showToast(`${data.message} (${data.elapsed}ms)${localMsg}`, false);
+            btn.innerHTML = '<i data-lucide="x-circle" class="icon-sm"></i>';
+          }
+        } catch (e) {
+          showToast("测试失败", false);
+          btn.innerHTML = '<i data-lucide="x-circle" class="icon-sm"></i>';
+        }
+        lucide.createIcons();
+        btn.classList.remove("loading");
+        setTimeout(() => {
+          btn.innerHTML = '<i data-lucide="plug" class="icon-sm"></i>';
+          lucide.createIcons();
+        }, 3000);
+      }
+
+      // 显示确认对话框
+      function showConfirmDialog(title, message, confirmText, cancelText) {
+        return new Promise((resolve) => {
+          const overlay = document.createElement("div");
+          overlay.className = "dialog-overlay";
+          overlay.innerHTML = `
+            <div class="dialog">
+              <h3>${title}</h3>
+              <p style="white-space: pre-line; margin: 12px 0; color: var(--text-secondary);">${message}</p>
+              <div class="dialog-actions">
+                <button class="btn btn-secondary" id="dialogCancel">${cancelText}</button>
+                <button class="btn btn-primary" id="dialogConfirm">${confirmText}</button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+
+          overlay.querySelector("#dialogConfirm").onclick = () => {
+            overlay.remove();
+            resolve(true);
+          };
+          overlay.querySelector("#dialogCancel").onclick = () => {
+            overlay.remove();
+            resolve(false);
+          };
+        });
+      }
+
+      // 导出配置
+      async function exportConfig() {
+        try {
+          const res = await fetch("/api/export");
+          const data = await res.json();
+          const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "model-switcher-config.json";
+          a.click();
+          URL.revokeObjectURL(url);
+          showToast("导出成功");
+        } catch (e) {
+          showToast("导出失败", false);
+        }
+      }
+
+      // 导入配置
+      async function importConfig(input) {
+        const file = input.files[0];
+        if (!file) return;
+        if (!confirm("导入将覆盖当前所有配置，确定继续？")) {
+          input.value = "";
+          return;
+        }
+        try {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          const res = await fetch("/api/import", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data),
+          });
+          const result = await res.json();
+          if (result.success) {
+            showToast(`导入成功，共 ${result.count} 条配置`);
+            loadConfigs();
+          } else {
+            showToast(result.error || "导入失败", false);
+          }
+        } catch (e) {
+          showToast("文件格式错误", false);
+        }
+        input.value = "";
+      }
+
+      // 主题切换
+      function toggleTheme() {
+        const html = document.documentElement;
+        const isDark = html.getAttribute("data-theme") === "dark";
+        const newTheme = isDark ? "light" : "dark";
+        html.setAttribute("data-theme", newTheme);
+        localStorage.setItem("theme", newTheme);
+        updateThemeIcon(newTheme);
+      }
+
+      function updateThemeIcon(theme) {
+        const btn = document.getElementById("themeBtn");
+        btn.innerHTML = theme === "dark"
+          ? '<i data-lucide="sun"></i>'
+          : '<i data-lucide="moon"></i>';
+        lucide.createIcons();
+      }
+
+      // 初始化主题
+      (function initTheme() {
+        const saved = localStorage.getItem("theme");
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const theme = saved || (prefersDark ? "dark" : "light");
+        document.documentElement.setAttribute("data-theme", theme);
+        updateThemeIcon(theme);
+      })();
     </script>
   </body>
 </html>

@@ -38,11 +38,19 @@ function startBackend() {
   if (serverProc) return;
   if (starting) return;
   starting = true;
-  serverProc = spawn("node", ["server.js"], {
+
+  // 跨平台：Windows 隐藏窗口，macOS/Linux 分离进程
+  const isWin = process.platform === "win32";
+  const opts = {
     cwd: __dirname,
     stdio: "ignore",
+    detached: !isWin,
     windowsHide: true,
-  });
+  };
+  serverProc = spawn("node", ["server.js"], opts);
+  if (!isWin && serverProc.pid) {
+    serverProc.unref();
+  }
   serverProc.on("exit", () => {
     serverProc = null;
     starting = false;

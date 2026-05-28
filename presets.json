@@ -1,0 +1,56 @@
+{
+  "urls": {
+    "claude": {
+      "deepseek": "https://api.deepseek.com/anthropic",
+      "mimo": "https://token-plan-sgp.xiaomimimo.com/anthropic",
+      "openai": "https://api.openai.com/v1",
+      "gemini": "https://generativelanguage.googleapis.com/v1beta",
+      "glm": "https://open.bigmodel.cn/api/paas/v4",
+      "kimi": "https://api.moonshot.cn/v1",
+      "mistral": "https://api.mistral.ai/v1",
+      "groq": "https://api.groq.com/openai/v1"
+    },
+    "opencode": {
+      "anthropic": {
+        "deepseek": "https://api.deepseek.com/anthropic",
+        "mimo": "https://token-plan-sgp.xiaomimimo.com/anthropic",
+        "openai": "https://api.openai.com/v1",
+        "gemini": "https://generativelanguage.googleapis.com/v1beta",
+        "glm": "https://open.bigmodel.cn/api/paas/v4",
+        "kimi": "https://api.moonshot.cn/v1",
+        "mistral": "https://api.mistral.ai/v1",
+        "groq": "https://api.groq.com/openai/v1"
+      },
+      "openai": {
+        "deepseek": "https://api.deepseek.com/v1",
+        "mimo": "https://token-plan-sgp.xiaomimimo.com/v1",
+        "openai": "https://api.openai.com/v1",
+        "gemini": "https://generativelanguage.googleapis.com/v1beta",
+        "glm": "https://open.bigmodel.cn/api/paas/v4",
+        "kimi": "https://api.moonshot.cn/v1",
+        "mistral": "https://api.mistral.ai/v1",
+        "groq": "https://api.groq.com/openai/v1"
+      }
+    }
+  },
+  "models": {
+    "deepseek": { "main": "deepseek-v4-pro", "haiku": "deepseek-v4-flash" },
+    "mimo": { "main": "mimo-v2.5-pro", "haiku": "mimo-v2.5-pro" },
+    "openai": { "main": "gpt-4o", "haiku": "gpt-4o-mini" },
+    "gemini": { "main": "gemini-2.5-pro", "haiku": "gemini-2.5-flash" },
+    "glm": { "main": "glm-4-plus", "haiku": "glm-4-flash" },
+    "kimi": { "main": "moonshot-v1-128k", "haiku": "moonshot-v1-8k" },
+    "mistral": { "main": "mistral-large-latest", "haiku": "mistral-small-latest" },
+    "groq": { "main": "llama-3.3-70b-versatile", "haiku": "llama-3.1-8b-instant" }
+  },
+  "providers": {
+    "deepseek": { "providerType": "openai", "icon": "sparkles" },
+    "mimo": { "providerType": "openai", "icon": "cpu" },
+    "openai": { "providerType": "openai", "icon": "globe" },
+    "gemini": { "providerType": "anthropic", "icon": "gem" },
+    "glm": { "providerType": "anthropic", "icon": "brain" },
+    "kimi": { "providerType": "anthropic", "icon": "moon" },
+    "mistral": { "providerType": "anthropic", "icon": "wind" },
+    "groq": { "providerType": "openai", "icon": "zap" }
+  }
+}
