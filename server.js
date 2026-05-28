@@ -67,6 +67,7 @@ app.post("/api/configs", (req, res) => {
     baseUrl: req.body.baseUrl || "",
     model: req.body.model || "",
     haikuModel: req.body.haikuModel || "",
+    extraBody: req.body.extraBody || null,
   };
   data.configs.push(config);
   writeJson(CONFIG_FILE, data);
@@ -169,6 +170,18 @@ function switchOpencode(config) {
       output: ["text"],
     },
   };
+
+  // 如果有 extraBody，则添加
+  if (config.extraBody) {
+    try {
+      s.provider[providerKey].models[modelId].extraBody =
+        typeof config.extraBody === "string"
+          ? JSON.parse(config.extraBody)
+          : config.extraBody;
+    } catch (e) {
+      console.error("解析 extraBody 失败:", e);
+    }
+  }
 
   // 设置当前激活的模型路径
   s.model = `${providerKey}/${modelId}`;

@@ -486,6 +486,16 @@
                 </div>
               </div>
             </div>
+            <div class="form-group" id="extraBodyGroup" style="display: none">
+              <label>Extra Body (JSON)</label>
+              <div class="input-with-btn">
+                <input
+                  type="text"
+                  id="extraBody"
+                  placeholder='{"thinking": false}'
+                />
+              </div>
+            </div>
             <button class="btn-save" onclick="addConfig()">保存</button>
           </div>
         </div>
@@ -540,6 +550,12 @@
             <div class="input-with-btn">
               <input type="text" id="editHaikuModel" />
             </div>
+          </div>
+        </div>
+        <div class="form-group" id="editExtraBodyGroup">
+          <label>Extra Body (JSON)</label>
+          <div class="input-with-btn">
+            <input type="text" id="editExtraBody" />
           </div>
         </div>
         <div class="modal-actions">
@@ -632,6 +648,13 @@
         document.getElementById("baseUrl").value = url;
         document.getElementById("model").value = MODELS[key].main;
         document.getElementById("haikuModel").value = MODELS[key].haiku;
+
+        // 自动填充 extraBody
+        if (currentTool === "opencode" && key === "deepseek") {
+          document.getElementById("extraBody").value = '{"thinking": false}';
+        } else {
+          document.getElementById("extraBody").value = "";
+        }
       }
 
       function toggleToken() {
@@ -659,9 +682,14 @@
       }
 
       function clearForm() {
-        ["name", "token", "baseUrl", "model", "haikuModel"].forEach(
-          (id) => (document.getElementById(id).value = ""),
-        );
+        [
+          "name",
+          "token",
+          "baseUrl",
+          "model",
+          "haikuModel",
+          "extraBody",
+        ].forEach((id) => (document.getElementById(id).value = ""));
         document.getElementById("token").type = "password";
         document.getElementById("tokenBtn").textContent = "👁";
         document.getElementById("provider").value = "anthropic";
@@ -688,6 +716,8 @@
           tool === "opencode" ? "block" : "none";
         document.getElementById("haikuGroup").style.display =
           tool === "claude" ? "block" : "none";
+        document.getElementById("extraBodyGroup").style.display =
+          tool === "opencode" ? "block" : "none";
         clearForm();
         updateDrops();
         render();
@@ -760,10 +790,16 @@
         document.getElementById("editBaseUrl").value = c.baseUrl;
         document.getElementById("editModel").value = c.model;
         document.getElementById("editHaikuModel").value = c.haikuModel || "";
+        document.getElementById("editExtraBody").value =
+          typeof c.extraBody === "object"
+            ? JSON.stringify(c.extraBody)
+            : c.extraBody || "";
         document.getElementById("editProviderGroup").style.display =
           c.type === "opencode" ? "block" : "none";
         document.getElementById("editHaikuGroup").style.display =
           c.type === "claude" ? "block" : "none";
+        document.getElementById("editExtraBodyGroup").style.display =
+          c.type === "opencode" ? "block" : "none";
         document.getElementById("editModal").classList.add("show");
       }
 
@@ -785,6 +821,7 @@
               baseUrl: document.getElementById("editBaseUrl").value,
               model: document.getElementById("editModel").value,
               haikuModel: document.getElementById("editHaikuModel").value,
+              extraBody: document.getElementById("editExtraBody").value,
             }),
           });
           const data = await res.json();
@@ -827,6 +864,7 @@
               baseUrl: document.getElementById("baseUrl").value.trim(),
               model: document.getElementById("model").value.trim(),
               haikuModel: document.getElementById("haikuModel").value.trim(),
+              extraBody: document.getElementById("extraBody").value.trim(),
             }),
           });
           const data = await res.json();
