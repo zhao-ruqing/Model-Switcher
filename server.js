@@ -297,8 +297,12 @@ app.post("/api/test/:id", async (req, res) => {
   const adapter = providers[config.type];
   const localCheck = adapter ? adapter.verify(config) : { ok: false, detail: "不支持的工具类型" };
 
-  // 选择对应 providerType 的测试器
-  const tester = testers[config.providerType];
+  // 根据 Base URL 或 providerType 选择测试器
+  // URL 含 /anthropic 路径的使用 Anthropic 测试器
+  const effectiveType = (config.baseUrl && config.baseUrl.includes("/anthropic"))
+    ? "anthropic"
+    : config.providerType;
+  const tester = testers[effectiveType];
   if (!tester) {
     return res.json({ success: false, message: `不支持的 Provider 类型: ${config.providerType}` });
   }

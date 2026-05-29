@@ -18,13 +18,14 @@
    npm install
    ```
 
-2. **启动服务**：
-   - Windows：双击 `scripts/start-silent.vbs`
-   - macOS/Linux：运行 `bash scripts/start-silent.sh`
+2. **设置开机自启**（仅需一次，在项目目录下运行）：
+   - Windows：`scripts\setup-autostart.ps1`（右键 → 使用 PowerShell 运行，或在 PowerShell 中直接输入路径）
+   - macOS/Linux：`bash scripts/setup-autostart.sh`
 
-3. **设置开机自启**（可选）：
-   - Windows：双击 `scripts/setup-autostart.vbs`
-   - macOS/Linux：运行 `bash scripts/setup-autostart.sh`
+3. **使用**：
+   - 设置自启后，launcher.js 会在登录时自动后台运行
+   - 直接在浏览器访问 [http://localhost:51234](http://localhost:51234) 即可
+   - 也可手动运行 `node launcher.js`，会自动转为后台进程
 
 4. **管理配置**：
    在浏览器访问 [http://localhost:51234](http://localhost:51234)
@@ -44,10 +45,11 @@ Model-Switcher/
 │   ├── claude.js       # Claude Code 适配器
 │   └── opencode.js     # OpenCode 适配器
 ├── scripts/            # 启动和设置脚本
-│   ├── start-silent.vbs
-│   ├── start-silent.sh
+│   ├── setup-autostart.ps1  # Windows 任务计划自启（推荐）
 │   ├── setup-autostart.vbs
 │   ├── setup-autostart.sh
+│   ├── start-silent.vbs
+│   ├── start-silent.sh
 │   └── cleanup-autostart.vbs
 └── docs/               # 文档
 ```

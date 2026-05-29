@@ -9,6 +9,47 @@ let serverProc = null;
 let idleTimer = null;
 let starting = false;
 
+// 自守护：终端运行时检测已有实例，无则后台重启自身
+// 任务计划/已后台化（非 TTY）时跳过，直接作为守护进程运行
+if (require.main === module && process.stdout.isTTY) {
+  const probe = http.get(`http://127.0.0.1:${PORT}/`, (res) => {
+    res.resume();
+    console.log("[launcher] 已有实例运行中，无需重复启动");
+    process.exit(0);
+  });
+  probe.on("error", () => {
+    // 无实例，后台重启自身
+    const child = spawn(process.execPath, [__filename], {
+      detached: true,
+      stdio: "ignore",
+      windowsHide: true,
+    });
+    child.unref();
+    // 等待子进程就绪后退出
+    let retries = 0;
+    const wait = setInterval(() => {
+      const chk = http.get(`http://127.0.0.1:${PORT}/`, (r) => {
+        r.resume();
+        clearInterval(wait);
+        console.log("[launcher] 已转为后台运行");
+        process.exit(0);
+      });
+      chk.on("error", () => {
+        if (++retries >= 10) {
+          clearInterval(wait);
+          console.log("[launcher] 启动超时");
+          process.exit(1);
+        }
+      });
+      chk.setTimeout(500, () => chk.destroy());
+    }, 300);
+  });
+  probe.setTimeout(1500, () => {
+    probe.destroy();
+  });
+  return;
+}
+
 function resetIdle() {
   clearTimeout(idleTimer);
   idleTimer = setTimeout(() => {
@@ -136,4 +177,12 @@ const launcher = http.createServer((req, res) => {
 
 launcher.listen(PORT, () => {
   console.log(`[launcher] 监听 http://localhost:${PORT}`);
+});
+
+launcher.on("error", (e) => {
+  if (e.code === "EADDRINUSE") {
+    console.log("[launcher] 端口已被占用，可能已有实例在运行");
+    process.exit(0);
+  }
+  throw e;
 });
