@@ -105,4 +105,24 @@ module.exports = {
       { id: "apiTimeoutMs", label: "超时 (ms)", type: "text" },
     ];
   },
+
+  getMcpConfig() {
+    const s = readJson(CLAUDE_SETTINGS);
+    return s.mcpServers || {};
+  },
+
+  writeMcpConfig(mcpServers) {
+    if (!fs.existsSync(CLAUDE_DIR)) {
+      fs.mkdirSync(CLAUDE_DIR, { recursive: true });
+    }
+    const s = readJson(CLAUDE_SETTINGS);
+    s.mcpServers = mcpServers;
+    writeJsonAtomic(CLAUDE_SETTINGS, s);
+
+    // 写入后校验
+    const check = verifyWrite(CLAUDE_SETTINGS, {});
+    if (!check.ok) {
+      throw new Error("MCP 配置写入校验失败：" + check.detail);
+    }
+  },
 };
