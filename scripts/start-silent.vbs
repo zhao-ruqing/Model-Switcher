@@ -1,5 +1,7 @@
 Set WshShell = CreateObject("WScript.Shell")
-WshShell.CurrentDirectory = CreateObject("Scripting.FileSystemObject").GetParentFolderName(WScript.ScriptFullName)
+Set FSO = CreateObject("Scripting.FileSystemObject")
+' 切换到项目根目录（scripts 的上一级），launcher.js 位于根目录
+WshShell.CurrentDirectory = FSO.GetParentFolderName(FSO.GetParentFolderName(WScript.ScriptFullName))
 WshShell.Run "cmd /c node launcher.js", 0, False
 
 ' Wait for launcher to be ready

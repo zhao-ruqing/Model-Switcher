@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # 静默后台启动 launcher.js（macOS/Linux 通用）
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# 切换到项目根目录（scripts 的上一级），launcher.js 位于根目录
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$SCRIPT_DIR" || exit 1
 
 # 检测 node 是否可用

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # 开机自启配置脚本（macOS 用 launchd，Linux 用 systemd）
 
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# 项目根目录（scripts 的上一级），launcher.js 位于根目录
+SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 APP_NAME="model-switcher"
 
 case "$(uname -s)" in
