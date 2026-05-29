@@ -15,17 +15,34 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // 兼容旧配置：统一读取 apiKey（旧字段名 token）
-function getApiKey(config) {
-  return config.apiKey || config.token || "";
-}
+const { getApiKey } = require("./providers/utils");
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
 });
 
+// 深合并：仅对非数组对象递归，数组和原始值直接覆盖
+function deepMerge(target, source) {
+  const result = { ...target };
+  for (const key of Object.keys(source)) {
+    if (
+      source[key] !== null && typeof source[key] === "object" && !Array.isArray(source[key]) &&
+      target[key] !== null && typeof target[key] === "object" && !Array.isArray(target[key])
+    ) {
+      result[key] = deepMerge(target[key], source[key]);
+    } else {
+      result[key] = source[key];
+    }
+  }
+  return result;
+}
+
 function readJson(file, def = {}) {
   try {
-    if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf-8"));
+    if (fs.existsSync(file)) {
+      const data = JSON.parse(fs.readFileSync(file, "utf-8"));
+      return deepMerge(def, data);
+    }
   } catch (e) {}
   return def;
 }
@@ -34,29 +51,27 @@ function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
+// 默认配置结构，记录各工具的当前激活配置 ID
+const DEFAULT_CONFIG = {
+  configs: [],
+  activeClaudeId: null,
+  activeOpencodeId: null,
+  activeCodexId: null,
+  activeAiderId: null,
+  activeContinueId: null,
+};
+
 if (!fs.existsSync(CONFIG_FILE)) {
-  writeJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  writeJson(CONFIG_FILE, DEFAULT_CONFIG);
 }
 
 app.get("/api/configs", (req, res) => {
-  const data = readJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  const data = readJson(CONFIG_FILE, DEFAULT_CONFIG);
   res.json(data);
 });
 
 app.post("/api/configs", (req, res) => {
-  const data = readJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  const data = readJson(CONFIG_FILE, DEFAULT_CONFIG);
   const config = {
     id: Date.now().toString(),
     name: req.body.name || "未命名",
@@ -77,11 +92,7 @@ app.post("/api/configs", (req, res) => {
 });
 
 app.put("/api/configs/:id", (req, res) => {
-  const data = readJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  const data = readJson(CONFIG_FILE, DEFAULT_CONFIG);
   const index = data.configs.findIndex((c) => c.id === req.params.id);
   if (index === -1) return res.status(404).json({ error: "不存在" });
 
@@ -100,25 +111,20 @@ app.put("/api/configs/:id", (req, res) => {
 });
 
 app.delete("/api/configs/:id", (req, res) => {
-  const data = readJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  const data = readJson(CONFIG_FILE, DEFAULT_CONFIG);
   data.configs = data.configs.filter((c) => c.id !== req.params.id);
   if (data.activeClaudeId === req.params.id) data.activeClaudeId = null;
   if (data.activeOpencodeId === req.params.id) data.activeOpencodeId = null;
+  if (data.activeCodexId === req.params.id) data.activeCodexId = null;
+  if (data.activeAiderId === req.params.id) data.activeAiderId = null;
+  if (data.activeContinueId === req.params.id) data.activeContinueId = null;
   writeJson(CONFIG_FILE, data);
   res.json({ success: true });
 });
 
 // 导出配置
 app.get("/api/export", (req, res) => {
-  const data = readJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  const data = readJson(CONFIG_FILE, DEFAULT_CONFIG);
   res.setHeader("Content-Type", "application/json");
   res.setHeader("Content-Disposition", "attachment; filename=model-switcher-config.json");
   res.json(data);
@@ -144,11 +150,11 @@ app.post("/api/import", (req, res) => {
     }
     // 验证 activeId 是否在 configs 中存在
     const configIds = new Set(imported.configs.map((c) => c.id));
-    if (imported.activeClaudeId && !configIds.has(imported.activeClaudeId)) {
-      imported.activeClaudeId = null;
-    }
-    if (imported.activeOpencodeId && !configIds.has(imported.activeOpencodeId)) {
-      imported.activeOpencodeId = null;
+    const activeIdFields = ["activeClaudeId", "activeOpencodeId", "activeCodexId", "activeAiderId", "activeContinueId"];
+    for (const field of activeIdFields) {
+      if (imported[field] && !configIds.has(imported[field])) {
+        imported[field] = null;
+      }
     }
     writeJson(CONFIG_FILE, imported);
     res.json({ success: true, count: imported.configs.length });
@@ -258,11 +264,7 @@ app.post("/api/fetch-models", async (req, res) => {
 });
 
 app.post("/api/switch/:id", (req, res) => {
-  const data = readJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  const data = readJson(CONFIG_FILE, DEFAULT_CONFIG);
   const config = data.configs.find((c) => c.id === req.params.id);
   if (!config) return res.status(404).json({ error: "不存在" });
 
@@ -271,8 +273,10 @@ app.post("/api/switch/:id", (req, res) => {
 
   try {
     adapter.switch(config);
-    if (config.type === "opencode") {
-      data.activeOpencodeId = config.id;
+    // 根据工具类型设置对应的激活 ID
+    const activeKey = `active${config.type.charAt(0).toUpperCase() + config.type.slice(1)}Id`;
+    if (activeKey in data) {
+      data[activeKey] = config.id;
     } else {
       data.activeClaudeId = config.id;
     }
@@ -285,11 +289,7 @@ app.post("/api/switch/:id", (req, res) => {
 
 // 测试 API Key 连通性（新版本：分离 API 连通性和本地配置状态）
 app.post("/api/test/:id", async (req, res) => {
-  const data = readJson(CONFIG_FILE, {
-    configs: [],
-    activeClaudeId: null,
-    activeOpencodeId: null,
-  });
+  const data = readJson(CONFIG_FILE, DEFAULT_CONFIG);
   const config = data.configs.find((c) => c.id === req.params.id);
   if (!config) return res.status(404).json({ error: "不存在" });
 

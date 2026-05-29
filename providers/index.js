@@ -1,10 +1,17 @@
 // Provider 适配器注册中心
 const claude = require("./claude");
 const opencode = require("./opencode");
+const codex = require("./codex");
+const aider = require("./aider");
+const continueAdapter = require("./continue");
+const { getApiKey } = require("./utils");
 
 const providers = {
   claude,
   opencode,
+  codex,
+  aider,
+  continue: continueAdapter,
 };
 
 // 根据 providerType 选择 API 测试逻辑
@@ -12,7 +19,7 @@ const testers = {
   // Anthropic 兼容 API 测试
   async anthropic(config) {
     const baseUrl = config.baseUrl || "https://api.anthropic.com";
-    const apiKey = config.apiKey || config.token || "";
+    const apiKey = getApiKey(config);
     const sdkBase = baseUrl.replace(/\/v1\/?$/, "").replace(/\/+$/, "");
     const testUrl = sdkBase + "/v1/messages";
     const startTime = Date.now();
@@ -42,7 +49,7 @@ const testers = {
   // OpenAI 兼容 API 测试
   async openai(config) {
     const baseUrl = config.baseUrl || "https://api.openai.com";
-    const apiKey = config.apiKey || config.token || "";
+    const apiKey = getApiKey(config);
     const testUrl = baseUrl.replace(/\/v1\/?$/, "") + "/v1/models";
     const startTime = Date.now();
 

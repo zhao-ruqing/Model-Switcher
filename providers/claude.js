@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { getApiKey } = require("./utils");
 
 const CLAUDE_DIR = path.join(process.env.USERPROFILE, ".claude");
 const CLAUDE_SETTINGS = path.join(CLAUDE_DIR, "settings.json");
@@ -13,10 +14,6 @@ function readJson(file, def = {}) {
 
 function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
-
-function getApiKey(config) {
-  return config.apiKey || config.token || "";
 }
 
 module.exports = {

@@ -147,26 +147,26 @@
 
 ### 5.1 Codex 适配器
 
-- **状态**：待开发
+- **状态**：已结束
 - **可行性**：✅ 高（OpenAI 官方 CLI，配置简单）
 - **范围**：新增 `providers/codex.js` + 更新 `providers/index.js` + 前端导航
 - **内容**：
   - 实现 `switch/verify/getFields` 三个方法
-  - 配置文件路径：`~/.codex/config.json` 或环境变量
+  - 配置文件路径：`~/.codex/config.toml`（TOML 格式，内置解析器）
   - 支持 OpenAI API 兼容测试
-- **改动量**：约 60 行新适配器 + 10 行注册 + 20 行前端
+- **改动量**：约 130 行新适配器 + 10 行注册 + 30 行前端
 - **验收标准**：可添加、切换、测试 Codex 配置
 
 ### 5.2 Aider 适配器
 
-- **状态**：待开发
+- **状态**：已结束
 - **可行性**：✅ 高（流行 CLI 工具，配置清晰）
 - **范围**：新增 `providers/aider.js` + 更新 `providers/index.js` + 前端导航
 - **内容**：
   - 实现 `switch/verify/getFields` 三个方法
-  - 配置文件路径：`~/.aider.conf.yml`（YAML 格式）
-  - 支持 Anthropic / OpenAI 双 API 类型
-- **改动量**：约 70 行新适配器 + 10 行注册 + 20 行前端
+  - 配置文件路径：`~/.aider.conf.yml`（YAML 格式，内置解析器）
+  - 支持 Anthropic / OpenAI 双 API 类型，按 providerType 写入对应字段
+- **改动量**：约 120 行新适配器 + 10 行注册 + 30 行前端
 - **验收标准**：可添加、切换、测试 Aider 配置
 
 ---
@@ -177,14 +177,14 @@
 
 ### 6.1 Continue 适配器
 
-- **状态**：待开发
+- **状态**：已结束
 - **可行性**：✅ 高（多 IDE 支持，配置规范）
 - **范围**：新增 `providers/continue.js` + 更新 `providers/index.js` + 前端导航
 - **内容**：
   - 实现 `switch/verify/getFields` 三个方法
-  - 配置文件路径：`~/.continue/config.json`
-  - 支持自定义 API 端点和模型
-- **改动量**：约 60 行新适配器 + 10 行注册 + 20 行前端
+  - 配置文件路径：`~/.continue/config.json`（JSON 格式）
+  - 支持 Anthropic / OpenAI 双 Provider，直接写入 config.json
+- **改动量**：约 100 行新适配器 + 10 行注册 + 30 行前端
 - **验收标准**：可添加、切换、测试 Continue 配置
 
 ---
@@ -249,9 +249,9 @@
 | 4.1 通用配置模型       | ✅ 已结束 | 2026-05-28 | 2026-05-28 | token → apiKey  |
 | 4.2 ProviderAdapter    | ✅ 已结束 | 2026-05-28 | 2026-05-28 | providers/ 目录 |
 | 4.3 动态表单渲染       | ✅ 已结束 | 2026-05-28 | 2026-05-28 | presets.json    |
-| 5.1 Codex 适配器       | ⬜ 待开发 | -          | -          | 高可行性        |
-| 5.2 Aider 适配器       | ⬜ 待开发 | -          | -          | 高可行性        |
-| 6.1 Continue 适配器    | ⬜ 待开发 | -          | -          | 高可行性        |
+| 5.1 Codex 适配器       | ✅ 已结束 | 2026-05-28 | 2026-05-28 | providers/codex.js |
+| 5.2 Aider 适配器       | ✅ 已结束 | 2026-05-28 | 2026-05-28 | providers/aider.js |
+| 6.1 Continue 适配器    | ✅ 已结束 | 2026-05-28 | 2026-05-28 | providers/continue.js |
 | 7.1 Cursor 适配器      | ⬜ 未开始 | -          | -          | 需调研          |
 | 7.2 Cline 适配器       | ⬜ 未开始 | -          | -          | 需调研          |
 | 8.1 开发者文档         | ⬜ 未开始 | -          | -          |                 |

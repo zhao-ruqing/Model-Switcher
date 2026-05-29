@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const { getApiKey } = require("./utils");
 
 const OPENCODE_DIR = path.join(process.env.USERPROFILE, ".config", "opencode");
 const OPENCODE_SETTINGS = path.join(OPENCODE_DIR, "opencode.jsonc");
@@ -13,10 +14,6 @@ function readJson(file, def = {}) {
 
 function writeJson(file, data) {
   fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
-
-function getApiKey(config) {
-  return config.apiKey || config.token || "";
 }
 
 module.exports = {

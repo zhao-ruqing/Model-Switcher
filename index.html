@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI 配置切换器</title>
-    <!-- Lucide 图标库 -->
+    <link rel="icon" href="image.png" type="image/png" />
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
       :root {
@@ -82,8 +82,12 @@
         height: 14px;
       }
       @keyframes spin {
-        from { transform: rotate(0deg); }
-        to { transform: rotate(360deg); }
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
       }
 
       * {
@@ -117,6 +121,16 @@
         padding: 20px 16px;
         border-bottom: 1px solid var(--border-color);
         position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .sidebar-logo {
+        width: 32px;
+        height: 32px;
+        margin-bottom: 12px;
+        border-radius: 6px;
+        object-fit: contain;
       }
       .sidebar-header h2 {
         font-size: 15px;
@@ -676,8 +690,10 @@
       <div class="sidebar">
         <div class="sidebar-header">
           <h2>配置切换器</h2>
-          <p>Claude Code / OpenCode</p>
-          <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn"><i data-lucide="moon"></i></button>
+          <p>AI 配置切换器</p>
+          <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">
+            <i data-lucide="moon"></i>
+          </button>
         </div>
         <div class="nav">
           <div
@@ -694,12 +710,40 @@
           >
             <i data-lucide="terminal" style="margin-right: 6px"></i>OpenCode
           </div>
+          <div class="nav-item" onclick="switchTool('codex')" id="nav-codex">
+            <i data-lucide="box" style="margin-right: 6px"></i>Codex
+          </div>
+          <div class="nav-item" onclick="switchTool('aider')" id="nav-aider">
+            <i data-lucide="git-branch" style="margin-right: 6px"></i>Aider
+          </div>
+          <div
+            class="nav-item"
+            onclick="switchTool('continue')"
+            id="nav-continue"
+          >
+            <i data-lucide="play" style="margin-right: 6px"></i>Continue
+          </div>
         </div>
         <div class="sidebar-footer">
-          <button class="btn-sidebar btn-wizard" onclick="openWizard()"><i data-lucide="wand-2" style="margin-right: 4px"></i>配置向导</button>
-          <button class="btn-sidebar" onclick="exportConfig()"><i data-lucide="download" style="margin-right: 4px"></i>导出配置</button>
-          <button class="btn-sidebar" onclick="document.getElementById('importFile').click()"><i data-lucide="upload" style="margin-right: 4px"></i>导入配置</button>
-          <input type="file" id="importFile" accept=".json" style="display:none" onchange="importConfig(this)" />
+          <button class="btn-sidebar btn-wizard" onclick="openWizard()">
+            <i data-lucide="wand-2" style="margin-right: 4px"></i>配置向导
+          </button>
+          <button class="btn-sidebar" onclick="exportConfig()">
+            <i data-lucide="download" style="margin-right: 4px"></i>导出配置
+          </button>
+          <button
+            class="btn-sidebar"
+            onclick="document.getElementById('importFile').click()"
+          >
+            <i data-lucide="upload" style="margin-right: 4px"></i>导入配置
+          </button>
+          <input
+            type="file"
+            id="importFile"
+            accept=".json"
+            style="display: none"
+            onchange="importConfig(this)"
+          />
         </div>
       </div>
       <div class="content">
@@ -751,7 +795,9 @@
                     </div>
                   </div>
                 </div>
-                <div class="hint">DeepSeek/MiMo/OpenAI/Groq 选 openai，其余选 anthropic</div>
+                <div class="hint">
+                  DeepSeek/MiMo/OpenAI/Groq 选 openai，其余选 anthropic
+                </div>
               </div>
             </div>
             <div class="form-group">
@@ -771,7 +817,12 @@
             <div class="form-group">
               <label>Base URL</label>
               <div class="input-with-btn" style="position: relative">
-                <input type="text" id="baseUrl" placeholder="https://..." oninput="onBaseUrlChange()" />
+                <input
+                  type="text"
+                  id="baseUrl"
+                  placeholder="https://..."
+                  oninput="onBaseUrlChange()"
+                />
                 <button class="btn-drop" onclick="toggleDrop('urlDrop')">
                   <i data-lucide="chevron-down" class="icon-sm"></i>
                 </button>
@@ -782,7 +833,12 @@
               <div class="form-group">
                 <label>模型</label>
                 <div class="input-with-btn" style="position: relative">
-                  <input type="text" id="model" placeholder="模型名称" onfocus="autoFetchModels()" />
+                  <input
+                    type="text"
+                    id="model"
+                    placeholder="模型名称"
+                    onfocus="autoFetchModels()"
+                  />
                   <button class="btn-drop" onclick="toggleDrop('modelDrop')">
                     <i data-lucide="chevron-down" class="icon-sm"></i>
                   </button>
@@ -792,7 +848,12 @@
               <div class="form-group" id="haikuGroup">
                 <label>Haiku 模型</label>
                 <div class="input-with-btn" style="position: relative">
-                  <input type="text" id="haikuModel" placeholder="可选" onfocus="autoFetchModels('haikuModel', 'haikuDrop')" />
+                  <input
+                    type="text"
+                    id="haikuModel"
+                    placeholder="可选"
+                    onfocus="autoFetchModels('haikuModel', 'haikuDrop')"
+                  />
                   <button class="btn-drop" onclick="toggleDrop('haikuDrop')">
                     <i data-lucide="chevron-down" class="icon-sm"></i>
                   </button>
@@ -882,9 +943,36 @@
     <!-- 配置向导弹窗 -->
     <div class="modal" id="wizardModal">
       <div class="modal-box" style="width: 450px">
-        <div class="modal-title" style="display: flex; justify-content: space-between; align-items: center">
+        <div
+          class="modal-title"
+          style="
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          "
+        >
           配置向导
-          <button onclick="closeWizard()" style="background: none; border: none; cursor: pointer; color: var(--text-muted); padding: 4px; border-radius: 4px; display: flex; align-items: center" onmouseover="this.style.color='var(--text-primary)'; this.style.background='var(--bg-hover)'" onmouseout="this.style.color='var(--text-muted)'; this.style.background='none'">
+          <button
+            onclick="closeWizard()"
+            style="
+              background: none;
+              border: none;
+              cursor: pointer;
+              color: var(--text-muted);
+              padding: 4px;
+              border-radius: 4px;
+              display: flex;
+              align-items: center;
+            "
+            onmouseover="
+              this.style.color = 'var(--text-primary)';
+              this.style.background = 'var(--bg-hover)';
+            "
+            onmouseout="
+              this.style.color = 'var(--text-muted)';
+              this.style.background = 'none';
+            "
+          >
             <i data-lucide="x"></i>
           </button>
         </div>
@@ -898,24 +986,63 @@
 
         <!-- 步骤1：选择工具 -->
         <div class="wizard-step active" id="wizardStep1">
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text-secondary);
+              margin-bottom: 16px;
+            "
+          >
             选择你要配置的工具
           </p>
           <div class="provider-grid">
-            <div class="provider-option" onclick="wizardSelectTool('claude', this)">
+            <div
+              class="provider-option"
+              onclick="wizardSelectTool('claude', this)"
+            >
               <div class="icon icon-lg"><i data-lucide="bot"></i></div>
               <div class="label">Claude Code</div>
             </div>
-            <div class="provider-option" onclick="wizardSelectTool('opencode', this)">
+            <div
+              class="provider-option"
+              onclick="wizardSelectTool('opencode', this)"
+            >
               <div class="icon icon-lg"><i data-lucide="terminal"></i></div>
               <div class="label">OpenCode</div>
+            </div>
+            <div
+              class="provider-option"
+              onclick="wizardSelectTool('codex', this)"
+            >
+              <div class="icon icon-lg"><i data-lucide="box"></i></div>
+              <div class="label">Codex</div>
+            </div>
+            <div
+              class="provider-option"
+              onclick="wizardSelectTool('aider', this)"
+            >
+              <div class="icon icon-lg"><i data-lucide="git-branch"></i></div>
+              <div class="label">Aider</div>
+            </div>
+            <div
+              class="provider-option"
+              onclick="wizardSelectTool('continue', this)"
+            >
+              <div class="icon icon-lg"><i data-lucide="play"></i></div>
+              <div class="label">Continue</div>
             </div>
           </div>
         </div>
 
         <!-- 步骤2：选择 Provider（动态生成） -->
         <div class="wizard-step" id="wizardStep2">
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text-secondary);
+              margin-bottom: 16px;
+            "
+          >
             选择 API 提供商
           </p>
           <div class="provider-grid" id="wizardProviderGrid"></div>
@@ -923,14 +1050,26 @@
 
         <!-- 步骤3：填写 API Key -->
         <div class="wizard-step" id="wizardStep3">
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text-secondary);
+              margin-bottom: 16px;
+            "
+          >
             填写 <span id="wizardProviderName">DeepSeek</span> 的 API Key
           </p>
           <div class="form-group">
             <label>API Key</label>
             <div class="input-with-btn">
               <input type="password" id="wizardToken" placeholder="sk-..." />
-              <button class="btn-drop" onclick="toggleWizardToken()" style="font-size: 12px"><i data-lucide="eye" class="icon-sm"></i></button>
+              <button
+                class="btn-drop"
+                onclick="toggleWizardToken()"
+                style="font-size: 12px"
+              >
+                <i data-lucide="eye" class="icon-sm"></i>
+              </button>
             </div>
             <div class="hint">你的 Key 将仅保存在本地 config.json 中</div>
           </div>
@@ -938,44 +1077,124 @@
 
         <!-- 步骤4：选择模型（动态获取） -->
         <div class="wizard-step" id="wizardStep4">
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text-secondary);
+              margin-bottom: 16px;
+            "
+          >
             选择模型
           </p>
-          <div id="wizardModelLoading" style="text-align: center; padding: 24px; color: var(--text-muted)">
-            <i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 24px; height: 24px"></i>
-            <div style="margin-top: 8px; font-size: 12px">正在获取模型列表...</div>
+          <div
+            id="wizardModelLoading"
+            style="text-align: center; padding: 24px; color: var(--text-muted)"
+          >
+            <i
+              data-lucide="loader-2"
+              style="
+                animation: spin 1s linear infinite;
+                width: 24px;
+                height: 24px;
+              "
+            ></i>
+            <div style="margin-top: 8px; font-size: 12px">
+              正在获取模型列表...
+            </div>
           </div>
           <div id="wizardModelContent" style="display: none">
             <div style="margin-bottom: 10px">
-              <input type="text" id="wizardModelSearch" placeholder="搜索模型..." style="width: 100%; padding: 7px 9px; border: 1px solid var(--input-border); border-radius: 5px; font-size: 13px; color: var(--text-primary); background: var(--input-bg)" oninput="filterWizardModels(this.value)" />
+              <input
+                type="text"
+                id="wizardModelSearch"
+                placeholder="搜索模型..."
+                style="
+                  width: 100%;
+                  padding: 7px 9px;
+                  border: 1px solid var(--input-border);
+                  border-radius: 5px;
+                  font-size: 13px;
+                  color: var(--text-primary);
+                  background: var(--input-bg);
+                "
+                oninput="filterWizardModels(this.value)"
+              />
             </div>
-            <div class="provider-grid" id="wizardModelGrid" style="max-height: 200px; overflow-y: auto"></div>
-            <div id="wizardModelHint" style="font-size: 10px; color: var(--text-hint); margin-top: 6px"></div>
+            <div
+              class="provider-grid"
+              id="wizardModelGrid"
+              style="max-height: 200px; overflow-y: auto"
+            ></div>
+            <div
+              id="wizardModelHint"
+              style="font-size: 10px; color: var(--text-hint); margin-top: 6px"
+            ></div>
           </div>
-          <div id="wizardModelError" style="display: none; text-align: center; padding: 16px">
-            <div style="color: var(--text-muted); font-size: 12px; margin-bottom: 10px" id="wizardModelErrorMsg"></div>
-            <div style="font-size: 11px; color: var(--text-hint)">请手动输入模型名称</div>
+          <div
+            id="wizardModelError"
+            style="display: none; text-align: center; padding: 16px"
+          >
+            <div
+              style="
+                color: var(--text-muted);
+                font-size: 12px;
+                margin-bottom: 10px;
+              "
+              id="wizardModelErrorMsg"
+            ></div>
+            <div style="font-size: 11px; color: var(--text-hint)">
+              请手动输入模型名称
+            </div>
           </div>
         </div>
 
         <!-- 步骤5：确认配置 -->
         <div class="wizard-step" id="wizardStep5">
-          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px">
+          <p
+            style="
+              font-size: 13px;
+              color: var(--text-secondary);
+              margin-bottom: 16px;
+            "
+          >
             确认配置信息
           </p>
           <div class="card" style="margin-bottom: 0">
             <div style="font-size: 12px; color: var(--text-secondary)">
-              <div style="margin-bottom: 8px"><strong>工具：</strong><span id="wizardSummaryTool">Claude Code</span></div>
-              <div style="margin-bottom: 8px"><strong>提供商：</strong><span id="wizardSummaryProvider">DeepSeek</span></div>
-              <div style="margin-bottom: 8px"><strong>模型：</strong><span id="wizardSummaryModel">deepseek-v4-pro</span></div>
-              <div><strong>Base URL：</strong><span id="wizardSummaryUrl">https://api.deepseek.com/anthropic</span></div>
+              <div style="margin-bottom: 8px">
+                <strong>工具：</strong
+                ><span id="wizardSummaryTool">Claude Code</span>
+              </div>
+              <div style="margin-bottom: 8px">
+                <strong>提供商：</strong
+                ><span id="wizardSummaryProvider">DeepSeek</span>
+              </div>
+              <div style="margin-bottom: 8px">
+                <strong>模型：</strong
+                ><span id="wizardSummaryModel">deepseek-v4-pro</span>
+              </div>
+              <div>
+                <strong>Base URL：</strong
+                ><span id="wizardSummaryUrl"
+                  >https://api.deepseek.com/anthropic</span
+                >
+              </div>
             </div>
           </div>
         </div>
 
         <div class="wizard-nav">
-          <button class="btn-prev" id="wizardPrev" onclick="wizardPrev()" style="display: none">上一步</button>
-          <button class="btn-next" id="wizardNext" onclick="wizardNext()">下一步</button>
+          <button
+            class="btn-prev"
+            id="wizardPrev"
+            onclick="wizardPrev()"
+            style="display: none"
+          >
+            上一步
+          </button>
+          <button class="btn-next" id="wizardNext" onclick="wizardNext()">
+            下一步
+          </button>
         </div>
       </div>
     </div>
@@ -984,9 +1203,34 @@
       let configs = [];
       let activeClaudeId = null;
       let activeOpencodeId = null;
+      let activeCodexId = null;
+      let activeAiderId = null;
+      let activeContinueId = null;
       let currentTool = "claude";
       let currentProvider = "anthropic";
       let presets = { urls: {}, models: {}, providers: {} };
+
+      // 根据工具名获取对应的激活配置 ID
+      function getActiveId(tool) {
+        if (tool === "claude") return activeClaudeId;
+        if (tool === "opencode") return activeOpencodeId;
+        if (tool === "codex") return activeCodexId;
+        if (tool === "aider") return activeAiderId;
+        if (tool === "continue") return activeContinueId;
+        return null;
+      }
+
+      // 工具显示名称映射
+      const TOOL_NAMES = {
+        claude: "Claude Code",
+        opencode: "OpenCode",
+        codex: "Codex",
+        aider: "Aider",
+        continue: "Continue",
+      };
+
+      // 需要按 providerType 区分 URL 的工具列表
+      const MULTI_PROVIDER_TOOLS = ["opencode", "aider", "codex", "continue"];
 
       // 转义 HTML 特殊字符，防止 XSS
       function escapeHtml(str) {
@@ -1002,7 +1246,9 @@
         const wasOpen = el.classList.contains("show");
         // 关闭其他下拉
         document.querySelectorAll(".dropdown-menu.show").forEach((m) => {
-          if (m !== el) { m.classList.remove("show", "drop-up"); }
+          if (m !== el) {
+            m.classList.remove("show", "drop-up");
+          }
         });
         if (wasOpen) {
           el.classList.remove("show", "drop-up");
@@ -1060,7 +1306,8 @@
         if (lower.includes("deepseek")) return "deepseek";
         if (lower.includes("mimo") || lower.includes("xiaomi")) return "mimo";
         if (lower.includes("openai")) return "openai";
-        if (lower.includes("gemini") || lower.includes("google")) return "gemini";
+        if (lower.includes("gemini") || lower.includes("google"))
+          return "gemini";
         if (lower.includes("bigmodel") || lower.includes("glm")) return "glm";
         if (lower.includes("moonshot") || lower.includes("kimi")) return "kimi";
         if (lower.includes("mistral")) return "mistral";
@@ -1082,16 +1329,21 @@
         clearTimeout(_fetchModelsTimer);
         _fetchModelsTimer = setTimeout(async () => {
           const drop = document.getElementById(dropId);
-          const container = drop.closest(".input-with-btn") || drop.parentElement;
+          const container =
+            drop.closest(".input-with-btn") || drop.parentElement;
           const rect = container.getBoundingClientRect();
-          if (window.innerHeight - rect.bottom < 210 && rect.top > window.innerHeight - rect.bottom) {
+          if (
+            window.innerHeight - rect.bottom < 210 &&
+            rect.top > window.innerHeight - rect.bottom
+          ) {
             drop.classList.add("drop-up");
           } else {
             drop.classList.remove("drop-up");
           }
 
           // 显示加载状态
-          drop.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 12px"><i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 14px; height: 14px"></i> 获取模型...</div>';
+          drop.innerHTML =
+            '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 12px"><i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 14px; height: 14px"></i> 获取模型...</div>';
           drop.classList.add("show");
           lucide.createIcons();
 
@@ -1101,18 +1353,27 @@
             const res = await fetch("/api/fetch-models", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ baseUrl, apiKey: "", providerType, providerName }),
+              body: JSON.stringify({
+                baseUrl,
+                apiKey: "",
+                providerType,
+                providerName,
+              }),
             });
             const data = await res.json();
             if (data.models && data.models.length > 0) {
-              drop.innerHTML = data.models.map(m =>
-                `<div class="item" onclick="pickValue('${inputId}','${m.id.replace(/'/g, "\\'")}')">${escapeHtml(m.name || m.id)}</div>`
-              ).join("");
+              drop.innerHTML = data.models
+                .map(
+                  (m) =>
+                    `<div class="item" onclick="pickValue('${inputId}','${m.id.replace(/'/g, "\\'")}')">${escapeHtml(m.name || m.id)}</div>`,
+                )
+                .join("");
             } else {
               drop.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 12px">${data.error || "未获取到模型，请手动输入"}</div>`;
             }
           } catch (e) {
-            drop.innerHTML = '<div style="padding: 10px; color: var(--text-muted); font-size: 12px">获取失败，请手动输入</div>';
+            drop.innerHTML =
+              '<div style="padding: 10px; color: var(--text-muted); font-size: 12px">获取失败，请手动输入</div>';
           }
 
           lucide.createIcons();
@@ -1128,10 +1389,14 @@
           return showToast("请先填写 Base URL", false);
         }
         const drop = document.getElementById(dropId);
-        drop.innerHTML = '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 12px"><i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 14px; height: 14px"></i> 获取中...</div>';
+        drop.innerHTML =
+          '<div style="padding: 10px; text-align: center; color: var(--text-muted); font-size: 12px"><i data-lucide="loader-2" style="animation: spin 1s linear infinite; width: 14px; height: 14px"></i> 获取中...</div>';
         const container = drop.closest(".input-with-btn") || drop.parentElement;
         const rect = container.getBoundingClientRect();
-        if (window.innerHeight - rect.bottom < 210 && rect.top > window.innerHeight - rect.bottom) {
+        if (
+          window.innerHeight - rect.bottom < 210 &&
+          rect.top > window.innerHeight - rect.bottom
+        ) {
           drop.classList.add("drop-up");
         } else {
           drop.classList.remove("drop-up");
@@ -1145,30 +1410,42 @@
           const res = await fetch("/api/fetch-models", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ baseUrl, apiKey, providerType, providerName }),
+            body: JSON.stringify({
+              baseUrl,
+              apiKey,
+              providerType,
+              providerName,
+            }),
           });
           const data = await res.json();
           if (data.models && data.models.length > 0) {
-            drop.innerHTML = data.models.map(m =>
-              `<div class="item" onclick="pickValue('${inputId}','${m.id.replace(/'/g, "\\'")}')">${escapeHtml(m.name || m.id)}</div>`
-            ).join("");
+            drop.innerHTML = data.models
+              .map(
+                (m) =>
+                  `<div class="item" onclick="pickValue('${inputId}','${m.id.replace(/'/g, "\\'")}')">${escapeHtml(m.name || m.id)}</div>`,
+              )
+              .join("");
           } else {
             drop.innerHTML = `<div style="padding: 10px; color: var(--text-muted); font-size: 12px">${data.error || "未获取到模型，请手动输入"}</div>`;
           }
         } catch (e) {
-          drop.innerHTML = '<div style="padding: 10px; color: var(--text-muted); font-size: 12px">获取失败，请手动输入</div>';
+          drop.innerHTML =
+            '<div style="padding: 10px; color: var(--text-muted); font-size: 12px">获取失败，请手动输入</div>';
         }
       }
 
       // 根据当前工具和 Provider 更新下拉菜单选项
       function updateDrops() {
-        const urls =
-          currentTool === "opencode"
-            ? (presets.urls.opencode || {})[currentProvider] || {}
-            : presets.urls.claude || {};
+        // opencode/aider/codex/continue 按 providerType 区分 URL，claude 直接用 claude 预设
+        const urls = MULTI_PROVIDER_TOOLS.includes(currentTool)
+          ? (presets.urls.opencode || {})[currentProvider] || {}
+          : presets.urls.claude || {};
         // 生成 URL 下拉选项
         const urlItems = Object.entries(urls)
-          .map(([key, url]) => `<div class="item" onclick="pickValue('baseUrl','${url}')">${url}</div>`)
+          .map(
+            ([key, url]) =>
+              `<div class="item" onclick="pickValue('baseUrl','${url}')">${url}</div>`,
+          )
           .join("");
         document.getElementById("urlDrop").innerHTML = urlItems;
         // 模型下拉清空，等待自动获取或手动输入
@@ -1196,10 +1473,9 @@
                         ? "groq"
                         : null;
         if (!key) return;
-        const url =
-          currentTool === "opencode"
-            ? (presets.urls.opencode || {})[currentProvider]?.[key] || ""
-            : (presets.urls.claude || {})[key] || "";
+        const url = MULTI_PROVIDER_TOOLS.includes(currentTool)
+          ? (presets.urls.opencode || {})[currentProvider]?.[key] || ""
+          : (presets.urls.claude || {})[key] || "";
         document.getElementById("baseUrl").value = url;
         // 清空模型，等待自动获取
         document.getElementById("model").value = "";
@@ -1252,7 +1528,8 @@
           "extraBody",
         ].forEach((id) => (document.getElementById(id).value = ""));
         document.getElementById("token").type = "password";
-        document.getElementById("tokenBtn").innerHTML = '<i data-lucide="eye" class="icon-sm"></i>';
+        document.getElementById("tokenBtn").innerHTML =
+          '<i data-lucide="eye" class="icon-sm"></i>';
         lucide.createIcons();
         document.getElementById("provider").value = "anthropic";
         currentProvider = "anthropic";
@@ -1269,13 +1546,14 @@
       function switchTool(tool) {
         currentTool = tool;
         document.getElementById("toolTitle").textContent =
-          tool === "claude" ? "Claude Code" : "OpenCode";
+          TOOL_NAMES[tool] || tool;
         document
           .querySelectorAll(".nav-item")
           .forEach((el) => el.classList.remove("active"));
         document.getElementById("nav-" + tool).classList.add("active");
+        // 根据工具类型显示/隐藏表单字段
         document.getElementById("providerGroup").style.display =
-          tool === "opencode" ? "block" : "none";
+          MULTI_PROVIDER_TOOLS.includes(tool) ? "block" : "none";
         document.getElementById("haikuGroup").style.display =
           tool === "claude" ? "block" : "none";
         document.getElementById("extraBodyGroup").style.display =
@@ -1291,14 +1569,17 @@
         configs = data.configs || [];
         activeClaudeId = data.activeClaudeId;
         activeOpencodeId = data.activeOpencodeId;
+        activeCodexId = data.activeCodexId;
+        activeAiderId = data.activeAiderId;
+        activeContinueId = data.activeContinueId;
         render();
       }
 
       function render() {
         const list = document.getElementById("configList");
         const filtered = configs.filter((c) => c.type === currentTool);
-        const currentActiveId =
-          currentTool === "claude" ? activeClaudeId : activeOpencodeId;
+        // 根据当前工具获取对应的激活 ID
+        const currentActiveId = getActiveId(currentTool);
         if (!filtered.length) {
           list.innerHTML = '<div class="empty">暂无配置</div>';
           return;
@@ -1309,8 +1590,12 @@
             const isActive = c.id === currentActiveId;
             const nameLower = c.name.toLowerCase();
             // 从预设中查找图标，未匹配则用默认图标
-            const providerKey = Object.keys(presets.providers || {}).find(k => nameLower.includes(k));
-            const iconName = providerKey ? (presets.providers[providerKey]?.icon || "bot") : "bot";
+            const providerKey = Object.keys(presets.providers || {}).find((k) =>
+              nameLower.includes(k),
+            );
+            const iconName = providerKey
+              ? presets.providers[providerKey]?.icon || "bot"
+              : "bot";
             return `
           <div class="config-item ${isActive ? "active" : ""}">
             <div class="icon"><i data-lucide="${iconName}"></i></div>
@@ -1337,8 +1622,12 @@
           const data = await res.json();
           if (data.success) {
             showToast("切换成功");
+            // 更新对应工具的激活 ID
             if (currentTool === "claude") activeClaudeId = id;
-            else activeOpencodeId = id;
+            else if (currentTool === "opencode") activeOpencodeId = id;
+            else if (currentTool === "codex") activeCodexId = id;
+            else if (currentTool === "aider") activeAiderId = id;
+            else if (currentTool === "continue") activeContinueId = id;
             render();
           }
         } catch (e) {
@@ -1362,7 +1651,7 @@
             ? JSON.stringify(c.extraBody)
             : c.extraBody || "";
         document.getElementById("editProviderGroup").style.display =
-          c.type === "opencode" ? "block" : "none";
+          MULTI_PROVIDER_TOOLS.includes(c.type) ? "block" : "none";
         document.getElementById("editHaikuGroup").style.display =
           c.type === "claude" ? "block" : "none";
         document.getElementById("editExtraBodyGroup").style.display =
@@ -1423,10 +1712,9 @@
             body: JSON.stringify({
               name,
               type: currentTool,
-              providerType:
-                currentTool === "opencode"
-                  ? document.getElementById("provider").value
-                  : undefined,
+              providerType: MULTI_PROVIDER_TOOLS.includes(currentTool)
+                ? document.getElementById("provider").value
+                : undefined,
               apiKey: document.getElementById("token").value.trim(),
               baseUrl: document.getElementById("baseUrl").value.trim(),
               model: document.getElementById("model").value.trim(),
@@ -1453,7 +1741,68 @@
       }
 
       // 内置预设数据（作为降级方案，当 API 不可用时使用）
-      const BUILTIN_PRESETS = {"urls":{"claude":{"deepseek":"https://api.deepseek.com/anthropic","mimo":"https://token-plan-sgp.xiaomimimo.com/anthropic","openai":"https://api.openai.com/v1","gemini":"https://generativelanguage.googleapis.com/v1beta","glm":"https://open.bigmodel.cn/api/paas/v4","kimi":"https://api.moonshot.cn/v1","mistral":"https://api.mistral.ai/v1","groq":"https://api.groq.com/openai/v1"},"opencode":{"anthropic":{"deepseek":"https://api.deepseek.com/anthropic","mimo":"https://token-plan-sgp.xiaomimimo.com/anthropic","openai":"https://api.openai.com/v1","gemini":"https://generativelanguage.googleapis.com/v1beta","glm":"https://open.bigmodel.cn/api/paas/v4","kimi":"https://api.moonshot.cn/v1","mistral":"https://api.mistral.ai/v1","groq":"https://api.groq.com/openai/v1"},"openai":{"deepseek":"https://api.deepseek.com/v1","mimo":"https://token-plan-sgp.xiaomimimo.com/v1","openai":"https://api.openai.com/v1","gemini":"https://generativelanguage.googleapis.com/v1beta","glm":"https://open.bigmodel.cn/api/paas/v4","kimi":"https://api.moonshot.cn/v1","mistral":"https://api.mistral.ai/v1","groq":"https://api.groq.com/openai/v1"}}},"models":{"deepseek":{"main":"deepseek-v4-pro","haiku":"deepseek-v4-flash"},"mimo":{"main":"mimo-v2.5-pro","haiku":"mimo-v2.5-pro"},"openai":{"main":"gpt-4o","haiku":"gpt-4o-mini"},"gemini":{"main":"gemini-2.5-pro","haiku":"gemini-2.5-flash"},"glm":{"main":"glm-4-plus","haiku":"glm-4-flash"},"kimi":{"main":"moonshot-v1-128k","haiku":"moonshot-v1-8k"},"mistral":{"main":"mistral-large-latest","haiku":"mistral-small-latest"},"groq":{"main":"llama-3.3-70b-versatile","haiku":"llama-3.1-8b-instant"}},"providers":{"deepseek":{"providerType":"openai","icon":"sparkles"},"mimo":{"providerType":"openai","icon":"cpu"},"openai":{"providerType":"openai","icon":"globe"},"gemini":{"providerType":"anthropic","icon":"gem"},"glm":{"providerType":"anthropic","icon":"brain"},"kimi":{"providerType":"anthropic","icon":"moon"},"mistral":{"providerType":"anthropic","icon":"wind"},"groq":{"providerType":"openai","icon":"zap"}}};
+      const BUILTIN_PRESETS = {
+        urls: {
+          claude: {
+            deepseek: "https://api.deepseek.com/anthropic",
+            mimo: "https://token-plan-sgp.xiaomimimo.com/anthropic",
+            openai: "https://api.openai.com/v1",
+            gemini: "https://generativelanguage.googleapis.com/v1beta",
+            glm: "https://open.bigmodel.cn/api/paas/v4",
+            kimi: "https://api.moonshot.cn/v1",
+            mistral: "https://api.mistral.ai/v1",
+            groq: "https://api.groq.com/openai/v1",
+          },
+          opencode: {
+            anthropic: {
+              deepseek: "https://api.deepseek.com/anthropic",
+              mimo: "https://token-plan-sgp.xiaomimimo.com/anthropic",
+              openai: "https://api.openai.com/v1",
+              gemini: "https://generativelanguage.googleapis.com/v1beta",
+              glm: "https://open.bigmodel.cn/api/paas/v4",
+              kimi: "https://api.moonshot.cn/v1",
+              mistral: "https://api.mistral.ai/v1",
+              groq: "https://api.groq.com/openai/v1",
+            },
+            openai: {
+              deepseek: "https://api.deepseek.com/v1",
+              mimo: "https://token-plan-sgp.xiaomimimo.com/v1",
+              openai: "https://api.openai.com/v1",
+              gemini: "https://generativelanguage.googleapis.com/v1beta",
+              glm: "https://open.bigmodel.cn/api/paas/v4",
+              kimi: "https://api.moonshot.cn/v1",
+              mistral: "https://api.mistral.ai/v1",
+              groq: "https://api.groq.com/openai/v1",
+            },
+          },
+        },
+        models: {
+          deepseek: { main: "deepseek-v4-pro", haiku: "deepseek-v4-flash" },
+          mimo: { main: "mimo-v2.5-pro", haiku: "mimo-v2.5-pro" },
+          openai: { main: "gpt-4o", haiku: "gpt-4o-mini" },
+          gemini: { main: "gemini-2.5-pro", haiku: "gemini-2.5-flash" },
+          glm: { main: "glm-4-plus", haiku: "glm-4-flash" },
+          kimi: { main: "moonshot-v1-128k", haiku: "moonshot-v1-8k" },
+          mistral: {
+            main: "mistral-large-latest",
+            haiku: "mistral-small-latest",
+          },
+          groq: {
+            main: "llama-3.3-70b-versatile",
+            haiku: "llama-3.1-8b-instant",
+          },
+        },
+        providers: {
+          deepseek: { providerType: "openai", icon: "sparkles" },
+          mimo: { providerType: "openai", icon: "cpu" },
+          openai: { providerType: "openai", icon: "globe" },
+          gemini: { providerType: "anthropic", icon: "gem" },
+          glm: { providerType: "anthropic", icon: "brain" },
+          kimi: { providerType: "anthropic", icon: "moon" },
+          mistral: { providerType: "anthropic", icon: "wind" },
+          groq: { providerType: "openai", icon: "zap" },
+        },
+      };
 
       // 加载预设数据后初始化界面
       async function loadPresets() {
@@ -1474,7 +1823,8 @@
             .map(([key]) => {
               const label = key.charAt(0).toUpperCase() + key.slice(1);
               return `<div class="item" onclick="pickValue('name', '${label}')">${label}</div>`;
-            }).join("");
+            })
+            .join("");
         }
         updateDrops();
         loadConfigs();
@@ -1492,7 +1842,15 @@
       };
 
       function openWizard() {
-        wizardState = { step: 1, tool: null, providerName: null, providerType: null, token: "", selectedModel: null, _fetchedModels: [] };
+        wizardState = {
+          step: 1,
+          tool: null,
+          providerName: null,
+          providerType: null,
+          token: "",
+          selectedModel: null,
+          _fetchedModels: [],
+        };
         // 重置向导中的 token 输入状态
         const wizardTokenInput = document.getElementById("wizardToken");
         if (wizardTokenInput) {
@@ -1514,8 +1872,12 @@
         const modelSearch = document.getElementById("wizardModelSearch");
         if (modelSearch) modelSearch.value = "";
         // 清除 provider 选项的选中状态
-        document.querySelectorAll("#wizardProviderGrid .provider-option").forEach(o => o.classList.remove("selected"));
-        document.querySelectorAll("#wizardStep1 .provider-option").forEach(o => o.classList.remove("selected"));
+        document
+          .querySelectorAll("#wizardProviderGrid .provider-option")
+          .forEach((o) => o.classList.remove("selected"));
+        document
+          .querySelectorAll("#wizardStep1 .provider-option")
+          .forEach((o) => o.classList.remove("selected"));
         document.getElementById("wizardModal").classList.add("show");
         wizardUpdateUI();
         lucide.createIcons();
@@ -1528,28 +1890,40 @@
       function wizardUpdateUI() {
         // 更新步骤显示
         for (let i = 1; i <= 5; i++) {
-          document.getElementById(`wizardStep${i}`).classList.toggle("active", i === wizardState.step);
+          document
+            .getElementById(`wizardStep${i}`)
+            .classList.toggle("active", i === wizardState.step);
         }
         // 更新进度点
         const dots = document.querySelectorAll("#wizardProgress .wizard-dot");
         dots.forEach((dot, i) => {
-          dot.className = "wizard-dot" + (i + 1 === wizardState.step ? " active" : i + 1 < wizardState.step ? " done" : "");
+          dot.className =
+            "wizard-dot" +
+            (i + 1 === wizardState.step
+              ? " active"
+              : i + 1 < wizardState.step
+                ? " done"
+                : "");
         });
         // 更新按钮
-        document.getElementById("wizardPrev").style.display = wizardState.step > 1 ? "block" : "none";
-        document.getElementById("wizardNext").textContent = wizardState.step === 5 ? "完成" : "下一步";
+        document.getElementById("wizardPrev").style.display =
+          wizardState.step > 1 ? "block" : "none";
+        document.getElementById("wizardNext").textContent =
+          wizardState.step === 5 ? "完成" : "下一步";
         // 动态生成 Provider 网格
         if (wizardState.step === 2) {
           const grid = document.getElementById("wizardProviderGrid");
           if (!grid.dataset.rendered) {
             const providerEntries = Object.entries(presets.providers || {});
-            grid.innerHTML = providerEntries.map(([key, p]) => {
-              const label = key.charAt(0).toUpperCase() + key.slice(1);
-              return `<div class="provider-option" onclick="wizardSelectProvider('${label}', '${p.providerType}', this)">
-                <div class="icon icon-lg"><i data-lucide="${p.icon || 'bot'}"></i></div>
+            grid.innerHTML = providerEntries
+              .map(([key, p]) => {
+                const label = key.charAt(0).toUpperCase() + key.slice(1);
+                return `<div class="provider-option" onclick="wizardSelectProvider('${label}', '${p.providerType}', this)">
+                <div class="icon icon-lg"><i data-lucide="${p.icon || "bot"}"></i></div>
                 <div class="label">${label}</div>
               </div>`;
-            }).join("");
+              })
+              .join("");
             grid.dataset.rendered = "1";
             lucide.createIcons();
           }
@@ -1560,27 +1934,35 @@
         }
         // 更新摘要
         if (wizardState.step === 5) {
-          document.getElementById("wizardSummaryTool").textContent = wizardState.tool === "claude" ? "Claude Code" : "OpenCode";
-          document.getElementById("wizardSummaryProvider").textContent = wizardState.providerName;
-          document.getElementById("wizardSummaryModel").textContent = wizardState.selectedModel || "未设置";
+          document.getElementById("wizardSummaryTool").textContent =
+            TOOL_NAMES[wizardState.tool] || wizardState.tool;
+          document.getElementById("wizardSummaryProvider").textContent =
+            wizardState.providerName;
+          document.getElementById("wizardSummaryModel").textContent =
+            wizardState.selectedModel || "未设置";
           const key = wizardState.providerName.toLowerCase();
-          const url = wizardState.tool === "opencode"
+          const url = MULTI_PROVIDER_TOOLS.includes(wizardState.tool)
             ? (presets.urls.opencode || {})[wizardState.providerType]?.[key] || ""
             : (presets.urls.claude || {})[key] || "";
-          document.getElementById("wizardSummaryUrl").textContent = url || "默认";
+          document.getElementById("wizardSummaryUrl").textContent =
+            url || "默认";
         }
       }
 
       function wizardSelectTool(tool, el) {
         wizardState.tool = tool;
-        el.parentElement.querySelectorAll(".provider-option").forEach(o => o.classList.remove("selected"));
+        el.parentElement
+          .querySelectorAll(".provider-option")
+          .forEach((o) => o.classList.remove("selected"));
         el.classList.add("selected");
       }
 
       function wizardSelectProvider(name, type, el) {
         wizardState.providerName = name;
         wizardState.providerType = type;
-        el.parentElement.querySelectorAll(".provider-option").forEach(o => o.classList.remove("selected"));
+        el.parentElement
+          .querySelectorAll(".provider-option")
+          .forEach((o) => o.classList.remove("selected"));
         el.classList.add("selected");
         document.getElementById("wizardProviderName").textContent = name;
       }
@@ -1590,10 +1972,13 @@
           if (!wizardState.tool) return showToast("请选择工具", false);
           wizardState.step = 2;
         } else if (wizardState.step === 2) {
-          if (!wizardState.providerName) return showToast("请选择提供商", false);
+          if (!wizardState.providerName)
+            return showToast("请选择提供商", false);
           wizardState.step = 3;
         } else if (wizardState.step === 3) {
-          wizardState.token = document.getElementById("wizardToken").value.trim();
+          wizardState.token = document
+            .getElementById("wizardToken")
+            .value.trim();
           if (!wizardState.token) return showToast("请输入 API Key", false);
           wizardState.step = 4;
         } else if (wizardState.step === 4) {
@@ -1623,7 +2008,7 @@
         error.style.display = "none";
 
         const key = wizardState.providerName.toLowerCase();
-        const baseUrl = wizardState.tool === "opencode"
+        const baseUrl = MULTI_PROVIDER_TOOLS.includes(wizardState.tool)
           ? (presets.urls.opencode || {})[wizardState.providerType]?.[key] || ""
           : (presets.urls.claude || {})[key] || "";
 
@@ -1631,7 +2016,12 @@
           const res = await fetch("/api/fetch-models", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ baseUrl, apiKey: wizardState.token, providerType: wizardState.providerType, providerName: wizardState.providerName }),
+            body: JSON.stringify({
+              baseUrl,
+              apiKey: wizardState.token,
+              providerType: wizardState.providerType,
+              providerName: wizardState.providerName,
+            }),
           });
           const data = await res.json();
           if (data.models && data.models.length > 0) {
@@ -1639,34 +2029,43 @@
             content.style.display = "block";
             wizardState._fetchedModels = data.models;
             renderWizardModels(data.models);
-            document.getElementById("wizardModelHint").textContent = `共 ${data.models.length} 个模型，从 ${wizardState.providerName} API 获取`;
+            document.getElementById("wizardModelHint").textContent =
+              `共 ${data.models.length} 个模型，从 ${wizardState.providerName} API 获取`;
           } else {
             throw new Error(data.error || "未获取到模型");
           }
         } catch (e) {
           loading.style.display = "none";
           error.style.display = "block";
-          document.getElementById("wizardModelErrorMsg").textContent = e.message || "获取模型失败，请手动输入模型名称";
+          document.getElementById("wizardModelErrorMsg").textContent =
+            e.message || "获取模型失败，请手动输入模型名称";
         }
         lucide.createIcons();
       }
 
       // 渲染模型选择网格
       function renderWizardModels(models, isFallback) {
-        const gridId = isFallback ? "wizardFallbackModelGrid" : "wizardModelGrid";
+        const gridId = isFallback
+          ? "wizardFallbackModelGrid"
+          : "wizardModelGrid";
         const grid = document.getElementById(gridId);
-        grid.innerHTML = models.map(m =>
-          `<div class="provider-option" onclick="wizardSelectModel('${m.id.replace(/'/g, "\\'")}', this)" title="${m.id}">
+        grid.innerHTML = models
+          .map(
+            (m) =>
+              `<div class="provider-option" onclick="wizardSelectModel('${m.id.replace(/'/g, "\\'")}', this)" title="${m.id}">
             <div class="label" style="font-size: 11px; word-break: break-all">${escapeHtml(m.name || m.id)}</div>
-          </div>`
-        ).join("");
+          </div>`,
+          )
+          .join("");
       }
 
       // 选择模型
       function wizardSelectModel(modelId, el) {
         wizardState.selectedModel = modelId;
         // 清除同级选中状态
-        el.parentElement.querySelectorAll(".provider-option").forEach(o => o.classList.remove("selected"));
+        el.parentElement
+          .querySelectorAll(".provider-option")
+          .forEach((o) => o.classList.remove("selected"));
         el.classList.add("selected");
       }
 
@@ -1674,7 +2073,9 @@
       function filterWizardModels(query) {
         const q = query.toLowerCase();
         const models = wizardState._fetchedModels || [];
-        const filtered = q ? models.filter(m => m.id.toLowerCase().includes(q)) : models;
+        const filtered = q
+          ? models.filter((m) => m.id.toLowerCase().includes(q))
+          : models;
         renderWizardModels(filtered);
       }
 
@@ -1694,7 +2095,7 @@
       async function wizardSave() {
         const name = wizardState.providerName;
         const key = name.toLowerCase();
-        const url = wizardState.tool === "opencode"
+        const url = MULTI_PROVIDER_TOOLS.includes(wizardState.tool)
           ? (presets.urls.opencode || {})[wizardState.providerType]?.[key] || ""
           : (presets.urls.claude || {})[key] || "";
         const model = wizardState.selectedModel || "";
@@ -1727,7 +2128,8 @@
       // 测试 API Key 连通性（新版本：自动提示切换配置）
       async function testConfig(id, btn) {
         btn.classList.add("loading");
-        btn.innerHTML = '<i data-lucide="loader-2" class="icon-sm" style="animation: spin 1s linear infinite"></i>';
+        btn.innerHTML =
+          '<i data-lucide="loader-2" class="icon-sm" style="animation: spin 1s linear infinite"></i>';
         lucide.createIcons();
         try {
           const res = await fetch(`/api/test/${id}`, { method: "POST" });
@@ -1736,26 +2138,31 @@
           if (data.success) {
             // API 连通且本地配置正确
             showToast(`${data.message} (${data.elapsed}ms)`);
-            btn.innerHTML = '<i data-lucide="check-circle" class="icon-sm"></i>';
+            btn.innerHTML =
+              '<i data-lucide="check-circle" class="icon-sm"></i>';
           } else if (data.apiOk && data.needSwitch) {
             // API 连通但本地配置未切换，提示用户是否自动切换
             const shouldSwitch = await showConfirmDialog(
               "API 连通成功",
               `API 连接正常，但本地配置未切换到此配置。\n\n当前本地配置：${data.localDetail}\n\n是否自动切换配置？`,
               "切换配置",
-              "暂不切换"
+              "暂不切换",
             );
             if (shouldSwitch) {
               await switchConfig(id);
               showToast("配置已切换，现在可以正常使用");
-              btn.innerHTML = '<i data-lucide="check-circle" class="icon-sm"></i>';
+              btn.innerHTML =
+                '<i data-lucide="check-circle" class="icon-sm"></i>';
             } else {
               showToast("API 连通，但本地配置未切换", true);
-              btn.innerHTML = '<i data-lucide="alert-triangle" class="icon-sm"></i>';
+              btn.innerHTML =
+                '<i data-lucide="alert-triangle" class="icon-sm"></i>';
             }
           } else {
             // API 不连通或其他错误
-            const localMsg = data.localDetail ? `\n本地配置：${data.localDetail}` : "";
+            const localMsg = data.localDetail
+              ? `\n本地配置：${data.localDetail}`
+              : "";
             showToast(`${data.message} (${data.elapsed}ms)${localMsg}`, false);
             btn.innerHTML = '<i data-lucide="x-circle" class="icon-sm"></i>';
           }
@@ -1804,7 +2211,9 @@
         try {
           const res = await fetch("/api/export");
           const data = await res.json();
-          const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+          const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: "application/json",
+          });
           const url = URL.createObjectURL(blob);
           const a = document.createElement("a");
           a.href = url;
@@ -1858,16 +2267,19 @@
 
       function updateThemeIcon(theme) {
         const btn = document.getElementById("themeBtn");
-        btn.innerHTML = theme === "dark"
-          ? '<i data-lucide="sun"></i>'
-          : '<i data-lucide="moon"></i>';
+        btn.innerHTML =
+          theme === "dark"
+            ? '<i data-lucide="sun"></i>'
+            : '<i data-lucide="moon"></i>';
         lucide.createIcons();
       }
 
       // 初始化主题
       (function initTheme() {
         const saved = localStorage.getItem("theme");
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const prefersDark = window.matchMedia(
+          "(prefers-color-scheme: dark)",
+        ).matches;
         const theme = saved || (prefersDark ? "dark" : "light");
         document.documentElement.setAttribute("data-theme", theme);
         updateThemeIcon(theme);
