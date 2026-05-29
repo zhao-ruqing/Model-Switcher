@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getApiKey } = require("./utils");
+const { getApiKey, atomicWrite, writeJsonAtomic } = require("./utils");
 
 const CODEX_DIR = path.join(process.env.USERPROFILE || process.env.HOME, ".codex");
 const CODEX_CONFIG = path.join(CODEX_DIR, "config.toml");
@@ -119,7 +119,7 @@ function writeConfig(data) {
   if (!fs.existsSync(CODEX_DIR)) {
     fs.mkdirSync(CODEX_DIR, { recursive: true });
   }
-  fs.writeFileSync(CODEX_CONFIG, stringifyToml(data));
+  atomicWrite(CODEX_CONFIG, stringifyToml(data));
 }
 
 // 写入 auth.json（Codex 读取 OPENAI_API_KEY 环境变量）
@@ -127,7 +127,7 @@ function writeAuth(apiKey) {
   if (!fs.existsSync(CODEX_DIR)) {
     fs.mkdirSync(CODEX_DIR, { recursive: true });
   }
-  fs.writeFileSync(CODEX_AUTH, JSON.stringify({ OPENAI_API_KEY: apiKey }, null, 2));
+  writeJsonAtomic(CODEX_AUTH, { OPENAI_API_KEY: apiKey });
 }
 
 // OpenAI 官方模型列表（使用 OpenAI 账号直接访问）
@@ -194,7 +194,7 @@ module.exports = {
       if (key) writeAuth(key);
       // 直接写入 TOML 字符串，确保格式正确
       const providerName = config.name || "custom";
-      fs.writeFileSync(CODEX_CONFIG, generateThirdPartyConfig(providerName, config.baseUrl, model));
+      atomicWrite(CODEX_CONFIG, generateThirdPartyConfig(providerName, config.baseUrl, model));
     }
   },
 

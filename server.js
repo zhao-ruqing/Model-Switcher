@@ -15,7 +15,27 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 // 兼容旧配置：统一读取 apiKey（旧字段名 token）
-const { getApiKey } = require("./providers/utils");
+const { getApiKey, writeJsonAtomic } = require("./providers/utils");
+
+const BACKUP_DIR = path.join(__dirname, "backups");
+const MAX_BACKUPS = 10;
+
+// 备份 config.json，轮转保留最近 10 份
+function backupFile(filePath) {
+  if (!fs.existsSync(filePath)) return;
+  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  const ts = new Date().toISOString().replace(/[:.]/g, "-");
+  const backupPath = path.join(BACKUP_DIR, `backup-${ts}.json`);
+  fs.copyFileSync(filePath, backupPath);
+  // 轮转清理：按修改时间排序，删除最旧的
+  const files = fs.readdirSync(BACKUP_DIR)
+    .filter(f => f.endsWith(".json"))
+    .map(f => ({ name: f, mtime: fs.statSync(path.join(BACKUP_DIR, f)).mtimeMs }))
+    .sort((a, b) => a.mtime - b.mtime);
+  while (files.length > MAX_BACKUPS) {
+    fs.unlinkSync(path.join(BACKUP_DIR, files.shift().name));
+  }
+}
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
@@ -47,10 +67,6 @@ function readJson(file, def = {}) {
   return def;
 }
 
-function writeJson(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
-
 // 默认配置结构，记录各工具的当前激活配置 ID
 const DEFAULT_CONFIG = {
   configs: [],
@@ -62,7 +78,7 @@ const DEFAULT_CONFIG = {
 };
 
 if (!fs.existsSync(CONFIG_FILE)) {
-  writeJson(CONFIG_FILE, DEFAULT_CONFIG);
+  writeJsonAtomic(CONFIG_FILE, DEFAULT_CONFIG);
 }
 
 app.get("/api/configs", (req, res) => {
@@ -84,7 +100,7 @@ app.post("/api/configs", (req, res) => {
     extraBody: req.body.extraBody || null,
   };
   data.configs.push(config);
-  writeJson(CONFIG_FILE, data);
+  writeJsonAtomic(CONFIG_FILE, data);
   res.json({
     success: true,
     config: config,
@@ -103,7 +119,7 @@ app.put("/api/configs/:id", (req, res) => {
     delete updates.token;
   }
   data.configs[index] = { ...data.configs[index], ...updates };
-  writeJson(CONFIG_FILE, data);
+  writeJsonAtomic(CONFIG_FILE, data);
   res.json({
     success: true,
     config: data.configs[index],
@@ -118,7 +134,8 @@ app.delete("/api/configs/:id", (req, res) => {
   if (data.activeCodexId === req.params.id) data.activeCodexId = null;
   if (data.activeAiderId === req.params.id) data.activeAiderId = null;
   if (data.activeContinueId === req.params.id) data.activeContinueId = null;
-  writeJson(CONFIG_FILE, data);
+  backupFile(CONFIG_FILE);
+  writeJsonAtomic(CONFIG_FILE, data);
   res.json({ success: true });
 });
 
@@ -156,7 +173,8 @@ app.post("/api/import", (req, res) => {
         imported[field] = null;
       }
     }
-    writeJson(CONFIG_FILE, imported);
+    backupFile(CONFIG_FILE);
+    writeJsonAtomic(CONFIG_FILE, imported);
     res.json({ success: true, count: imported.configs.length });
   } catch (e) {
     res.status(400).json({ error: "导入失败：" + e.message });
@@ -167,6 +185,29 @@ app.post("/api/import", (req, res) => {
 app.get("/api/presets", (req, res) => {
   const presets = readJson(PRESETS_FILE, {});
   res.json(presets);
+});
+
+// 检查系统环境变量中是否有冲突的 ANTHROPIC_* 配置
+app.get("/api/env-check", (req, res) => {
+  const conflicts = [];
+  const envVars = [
+    "ANTHROPIC_BASE_URL",
+    "ANTHROPIC_AUTH_TOKEN",
+    "ANTHROPIC_API_KEY",
+    "ANTHROPIC_MODEL",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL",
+  ];
+  for (const varName of envVars) {
+    const val = process.env[varName];
+    if (val) {
+      const isKey = varName.includes("KEY") || varName.includes("TOKEN");
+      const displayVal = isKey ? val.slice(0, 8) + "***" : val;
+      conflicts.push({ name: varName, value: displayVal });
+    }
+  }
+  res.json({ hasConflicts: conflicts.length > 0, conflicts });
 });
 
 // 返回指定工具的表单字段定义
@@ -280,7 +321,8 @@ app.post("/api/switch/:id", (req, res) => {
     } else {
       data.activeClaudeId = config.id;
     }
-    writeJson(CONFIG_FILE, data);
+    backupFile(CONFIG_FILE);
+    writeJsonAtomic(CONFIG_FILE, data);
     res.json({ success: true, config: config });
   } catch (e) {
     res.status(500).json({ error: e.message });

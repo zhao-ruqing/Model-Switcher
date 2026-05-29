@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getApiKey } = require("./utils");
+const { getApiKey, writeJsonAtomic, verifyWrite } = require("./utils");
 
 const CONTINUE_DIR = path.join(
   process.env.USERPROFILE || process.env.HOME,
@@ -13,10 +13,6 @@ function readJson(file, def = {}) {
     if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf-8"));
   } catch (e) {}
   return def;
-}
-
-function writeJson(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
 // 根据 providerType 映射 Continue 的 provider 名称
@@ -58,7 +54,16 @@ module.exports = {
       data.models.push(modelEntry);
     }
 
-    writeJson(CONTINUE_CONFIG, data);
+    writeJsonAtomic(CONTINUE_CONFIG, data);
+
+    // 写入后校验
+    const check = verifyWrite(CONTINUE_CONFIG, {
+      "models.0.provider": provider,
+      "models.0.model": config.model || undefined,
+    });
+    if (!check.ok) {
+      throw new Error("配置写入校验失败：" + check.detail);
+    }
   },
 
   verify(config) {

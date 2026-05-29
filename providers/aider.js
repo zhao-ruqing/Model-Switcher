@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getApiKey } = require("./utils");
+const { getApiKey, atomicWrite } = require("./utils");
 
 const AIDER_CONFIG = path.join(
   process.env.USERPROFILE || process.env.HOME,
@@ -88,7 +88,7 @@ function readConfig() {
 }
 
 function writeConfig(data) {
-  fs.writeFileSync(AIDER_CONFIG, stringifyYaml(data));
+  atomicWrite(AIDER_CONFIG, stringifyYaml(data));
 }
 
 module.exports = {

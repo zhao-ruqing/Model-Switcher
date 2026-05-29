@@ -927,6 +927,19 @@
             </div>
           </div>
         </div>
+        <div class="form-group" id="editApiKeyFieldGroup" style="display: none">
+          <label>认证方式</label>
+          <div class="input-with-btn">
+            <input type="text" id="editApiKeyField" value="ANTHROPIC_AUTH_TOKEN" />
+          </div>
+          <div class="hint">大多数 Provider 用 ANTHROPIC_AUTH_TOKEN，少数用 ANTHROPIC_API_KEY</div>
+        </div>
+        <div class="form-group" id="editApiTimeoutGroup" style="display: none">
+          <label>超时 (ms)</label>
+          <div class="input-with-btn">
+            <input type="text" id="editApiTimeoutMs" placeholder="可选，如 3000000" />
+          </div>
+        </div>
         <div class="form-group" id="editExtraBodyGroup">
           <label>Extra Body (JSON)</label>
           <div class="input-with-btn">
@@ -1618,6 +1631,20 @@
 
       async function switchConfig(id) {
         try {
+          // 检查环境变量冲突
+          const envRes = await fetch("/api/env-check");
+          const envData = await envRes.json();
+          if (envData.hasConflicts) {
+            const conflictList = envData.conflicts.map(c => `${c.name}=${c.value}`).join("\n");
+            const shouldContinue = await showConfirmDialog(
+              "检测到环境变量冲突",
+              `系统环境变量中存在以下 ANTHROPIC_* 配置，可能会覆盖 settings.json 中的设置：\n\n${conflictList}\n\n是否仍要切换？`,
+              "继续切换",
+              "取消"
+            );
+            if (!shouldContinue) return;
+          }
+
           const res = await fetch(`/api/switch/${id}`, { method: "POST" });
           const data = await res.json();
           if (data.success) {
@@ -1656,6 +1683,10 @@
           c.type === "claude" ? "block" : "none";
         document.getElementById("editExtraBodyGroup").style.display =
           c.type === "opencode" ? "block" : "none";
+        document.getElementById("editApiKeyField").value = c.apiKeyField || "ANTHROPIC_AUTH_TOKEN";
+        document.getElementById("editApiTimeoutMs").value = c.apiTimeoutMs || "";
+        document.getElementById("editApiKeyFieldGroup").style.display = c.type === "claude" ? "block" : "none";
+        document.getElementById("editApiTimeoutGroup").style.display = c.type === "claude" ? "block" : "none";
         document.getElementById("editModal").classList.add("show");
       }
 
@@ -1678,6 +1709,8 @@
               model: document.getElementById("editModel").value,
               haikuModel: document.getElementById("editHaikuModel").value,
               extraBody: document.getElementById("editExtraBody").value,
+              apiKeyField: document.getElementById("editApiKeyField").value,
+              apiTimeoutMs: document.getElementById("editApiTimeoutMs").value,
             }),
           });
           const data = await res.json();
@@ -1752,6 +1785,14 @@
             kimi: "https://api.moonshot.cn/v1",
             mistral: "https://api.mistral.ai/v1",
             groq: "https://api.groq.com/openai/v1",
+            volcengine: "https://ark.cn-beijing.volces.com/api/coding",
+            bailian: "https://dashscope.aliyuncs.com/apps/anthropic",
+            minimax: "https://api.minimaxi.com/anthropic",
+            stepfun: "https://api.stepfun.com/step_plan",
+            modelscope: "https://api-inference.modelscope.cn",
+            qianfan: "https://qianfan.baidubce.com/anthropic/coding",
+            longcat: "https://api.longcat.chat/anthropic",
+            shengsuanyun: "https://router.shengsuanyun.com/api",
           },
           opencode: {
             anthropic: {
@@ -1763,6 +1804,14 @@
               kimi: "https://api.moonshot.cn/v1",
               mistral: "https://api.mistral.ai/v1",
               groq: "https://api.groq.com/openai/v1",
+              volcengine: "https://ark.cn-beijing.volces.com/api/coding",
+              bailian: "https://dashscope.aliyuncs.com/apps/anthropic",
+              minimax: "https://api.minimaxi.com/anthropic",
+              stepfun: "https://api.stepfun.com/step_plan",
+              modelscope: "https://api-inference.modelscope.cn",
+              qianfan: "https://qianfan.baidubce.com/anthropic/coding",
+              longcat: "https://api.longcat.chat/anthropic",
+              shengsuanyun: "https://router.shengsuanyun.com/api",
             },
             openai: {
               deepseek: "https://api.deepseek.com/v1",
@@ -1773,6 +1822,14 @@
               kimi: "https://api.moonshot.cn/v1",
               mistral: "https://api.mistral.ai/v1",
               groq: "https://api.groq.com/openai/v1",
+              volcengine: "https://ark.cn-beijing.volces.com/api/coding",
+              bailian: "https://dashscope.aliyuncs.com/apps/anthropic",
+              minimax: "https://api.minimaxi.com/anthropic",
+              stepfun: "https://api.stepfun.com/step_plan",
+              modelscope: "https://api-inference.modelscope.cn",
+              qianfan: "https://qianfan.baidubce.com/anthropic/coding",
+              longcat: "https://api.longcat.chat/anthropic",
+              shengsuanyun: "https://router.shengsuanyun.com/api",
             },
           },
         },
@@ -1791,16 +1848,32 @@
             main: "llama-3.3-70b-versatile",
             haiku: "llama-3.1-8b-instant",
           },
+          volcengine: { main: "ark-code-latest", haiku: "ark-code-latest" },
+          bailian: { main: "qwen-max", haiku: "qwen-turbo" },
+          minimax: { main: "MiniMax-M2.7", haiku: "MiniMax-M2.7" },
+          stepfun: { main: "step-3.5-flash-2603", haiku: "step-3.5-flash-2603" },
+          modelscope: { main: "ZhipuAI/GLM-5", haiku: "ZhipuAI/GLM-5" },
+          qianfan: { main: "qianfan-code-latest", haiku: "qianfan-code-latest" },
+          longcat: { main: "LongCat-Flash-Chat", haiku: "LongCat-Flash-Chat" },
+          shengsuanyun: { main: "claude-sonnet-4-6", haiku: "claude-haiku-4-5-20251001" },
         },
         providers: {
-          deepseek: { providerType: "openai", icon: "sparkles" },
-          mimo: { providerType: "openai", icon: "cpu" },
-          openai: { providerType: "openai", icon: "globe" },
-          gemini: { providerType: "anthropic", icon: "gem" },
-          glm: { providerType: "anthropic", icon: "brain" },
-          kimi: { providerType: "anthropic", icon: "moon" },
-          mistral: { providerType: "anthropic", icon: "wind" },
-          groq: { providerType: "openai", icon: "zap" },
+          deepseek: { providerType: "openai", icon: "sparkles", category: "cn_official", apiKeyUrl: "https://platform.deepseek.com/api_keys" },
+          mimo: { providerType: "openai", icon: "cpu", category: "cn_official", apiKeyUrl: "https://mimo.xiaomi.com/settings/api-keys" },
+          openai: { providerType: "openai", icon: "globe", category: "official", apiKeyUrl: "https://platform.openai.com/api-keys" },
+          gemini: { providerType: "anthropic", icon: "gem", category: "official", apiKeyUrl: "https://aistudio.google.com/apikey" },
+          glm: { providerType: "anthropic", icon: "brain", category: "cn_official", apiKeyUrl: "https://open.bigmodel.cn/usercenter/apikeys" },
+          kimi: { providerType: "anthropic", icon: "moon", category: "cn_official", apiKeyUrl: "https://platform.moonshot.cn/console/api-keys" },
+          mistral: { providerType: "anthropic", icon: "wind", category: "official", apiKeyUrl: "https://console.mistral.ai/api-keys/" },
+          groq: { providerType: "openai", icon: "zap", category: "official", apiKeyUrl: "https://console.groq.com/keys" },
+          volcengine: { providerType: "anthropic", icon: "flame", category: "cn_official", apiKeyUrl: "https://console.volcengine.com/ark/region:ark+cn-beijing/apiKey" },
+          bailian: { providerType: "anthropic", icon: "cloud", category: "cn_official", apiKeyUrl: "https://bailian.console.aliyun.com/" },
+          minimax: { providerType: "anthropic", icon: "boxes", category: "cn_official", apiKeyUrl: "https://platform.minimaxi.com/user-center/basic-information/interface-key" },
+          stepfun: { providerType: "anthropic", icon: "footprints", category: "cn_official", apiKeyUrl: "https://platform.stepfun.com/docs/guide/create_api_key" },
+          modelscope: { providerType: "anthropic", icon: "atom", category: "cn_official", apiKeyUrl: "https://modelscope.cn/my/myaccesstoken" },
+          qianfan: { providerType: "anthropic", icon: "search", category: "cn_official", apiKeyUrl: "https://console.bce.baidu.com/qianfan/ais/console/applicationConsole/application" },
+          longcat: { providerType: "anthropic", icon: "cat", category: "third_party", apiKeyUrl: "https://longcat.chat/settings/api-keys" },
+          shengsuanyun: { providerType: "anthropic", icon: "server", category: "third_party", apiKeyUrl: "https://shengsuanyun.com/dashboard" },
         },
       };
 

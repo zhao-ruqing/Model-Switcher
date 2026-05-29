@@ -1,6 +1,6 @@
 const fs = require("fs");
 const path = require("path");
-const { getApiKey } = require("./utils");
+const { getApiKey, writeJsonAtomic, verifyWrite } = require("./utils");
 
 const OPENCODE_DIR = path.join(process.env.USERPROFILE, ".config", "opencode");
 const OPENCODE_SETTINGS = path.join(OPENCODE_DIR, "opencode.jsonc");
@@ -10,10 +10,6 @@ function readJson(file, def = {}) {
     if (fs.existsSync(file)) return JSON.parse(fs.readFileSync(file, "utf-8"));
   } catch (e) {}
   return def;
-}
-
-function writeJson(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
 }
 
 module.exports = {
@@ -82,7 +78,16 @@ module.exports = {
 
     s.model = `${providerKey}/${modelId}`;
 
-    writeJson(OPENCODE_SETTINGS, s);
+    writeJsonAtomic(OPENCODE_SETTINGS, s);
+
+    // 写入后校验
+    const check = verifyWrite(OPENCODE_SETTINGS, {
+      [`provider.${providerKey}.options.apiKey`]: getApiKey(config) || undefined,
+      "model": `${providerKey}/${modelId}`,
+    });
+    if (!check.ok) {
+      throw new Error("配置写入校验失败：" + check.detail);
+    }
   },
 
   verify(config) {

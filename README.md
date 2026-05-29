@@ -1,14 +1,16 @@
 # Model Switcher
 
-一个轻量级、按需启动的工具，用于快速管理和切换 Claude Code 和 OpenCode 的 API 模型配置。
+一个轻量级、按需启动的工具，用于快速管理和切换 AI 编程工具的 API 模型配置。支持 Claude Code、OpenCode、Codex、Aider、Continue 等工具，目标覆盖 Gemini CLI、OpenClaw、Hermes Agent。
+
+> **开发者注意**：开始编码前请先阅读 `docs/Development-Progress-Document.md`，了解项目设计哲学、已完成阶段和当前开发计划。
 
 ## 核心特性
 
 - **按需启动**：后台服务平时不占用资源，仅在访问管理页面时自动激活。
 - **静默运行**：通过 VBS 脚本实现完全后台运行，无控制台窗口干扰。
-- **多工具支持**：独立管理 Claude Code 和 OpenCode 的配置状态。
-- **智能获取**：自动识别厂商并获取可用模型列表。
+- **多工具支持**：统一管理多个 AI 编程工具的 Provider 配置，插件式适配器架构易于扩展。
 - **连通性测试**：一键测试 API 连通性，自动提示切换配置。
+- **配置安全**：原子写入 + 自动备份 + 写入校验（开发中），杜绝配置损坏。
 
 ## 快速开始
 
@@ -42,8 +44,12 @@ Model-Switcher/
 ├── package.json        # 项目依赖
 ├── providers/          # 工具适配器
 │   ├── index.js        # 适配器注册中心
+│   ├── utils.js        # 共享工具函数
 │   ├── claude.js       # Claude Code 适配器
-│   └── opencode.js     # OpenCode 适配器
+│   ├── opencode.js     # OpenCode 适配器
+│   ├── codex.js        # Codex 适配器
+│   ├── aider.js        # Aider 适配器
+│   └── continue.js     # Continue 适配器
 ├── scripts/            # 启动和设置脚本
 │   ├── setup-autostart.ps1  # Windows 任务计划自启（推荐）
 │   ├── setup-autostart.vbs
@@ -56,8 +62,17 @@ Model-Switcher/
 
 ## 适配工具
 
-- **Claude Code**: 修改 `~/.claude/settings.json`
-- **OpenCode**: 修改 `~/.config/opencode/opencode.jsonc`
+**已支持：**
+
+| 工具 | 配置文件 | 格式 |
+|------|----------|------|
+| Claude Code | `~/.claude/settings.json` | JSON |
+| OpenCode | `~/.config/opencode/opencode.jsonc` | JSONC |
+| Codex | `~/.codex/config.toml` | TOML |
+| Aider | `~/.aider.conf.yml` | YAML |
+| Continue | `~/.continue/config.json` | JSON |
+
+**计划支持：** Gemini CLI、OpenClaw、Hermes Agent
 
 ## 安全说明
 
